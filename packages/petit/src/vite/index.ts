@@ -1,0 +1,1 @@
+export { petitPlugin } from "./plugin"

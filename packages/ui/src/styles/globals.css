@@ -1,0 +1,575 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/google-sans/400.css";
+@import "@fontsource/google-sans/500.css";
+@import "@fontsource/google-sans/700.css";
+@import "@fontsource-variable/jetbrains-mono";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../../../components/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --font-sans: 'Google Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono Variable', monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    }
+  code, kbd, pre, samp {
+    font-family: var(--font-mono);
+    }
+
+  /* Themed scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) transparent;
+    }
+  *::-webkit-scrollbar {
+    @apply w-2 h-2;
+    }
+  *::-webkit-scrollbar-track {
+    @apply bg-transparent;
+    }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-muted-foreground/20;
+    }
+  *::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+    }
+}
+
+/* Petit custom components */
+
+/* Install tabs */
+.petit-install-tabs {
+	@apply my-4 overflow-hidden rounded-lg border border-border;
+}
+
+.petit-tabs-header {
+	@apply flex border-b border-border bg-muted/50;
+}
+
+.petit-tab-label {
+	@apply cursor-pointer px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
+}
+
+.petit-tab-label.petit-tab-active {
+	@apply border-b-2 border-primary text-foreground;
+}
+
+.petit-tab-panel pre {
+	@apply m-0 rounded-none border-0;
+}
+
+/* Code blocks */
+.petit-copy-btn {
+	@apply absolute top-2 right-2 rounded-md border border-border bg-background/80 px-2 py-1 text-[10px] font-medium text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-foreground;
+}
+
+pre:hover .petit-copy-btn {
+	@apply opacity-100;
+}
+
+/* Codeblock (with filename header) */
+.petit-codeblock {
+	@apply my-5 overflow-hidden rounded-lg border border-border;
+}
+
+.petit-codeblock-header {
+	@apply flex items-center border-b border-border bg-muted/30 px-4 py-2;
+}
+
+.petit-codeblock-title {
+	@apply text-xs font-medium text-muted-foreground;
+}
+
+.petit-codeblock pre {
+	@apply m-0 rounded-none border-0;
+}
+
+/* Mermaid */
+.petit-mermaid {
+	@apply my-4 flex justify-center;
+}
+
+.petit-mermaid svg {
+	@apply max-w-full;
+}
+
+.petit-mermaid-fallback {
+	@apply text-xs text-muted-foreground;
+}
+
+/* Table wrap */
+.petit-table-wrap {
+	@apply my-4 overflow-x-auto;
+}
+
+/* Figure */
+.petit-figure {
+	@apply my-6;
+}
+
+.petit-figure img {
+	@apply rounded-lg;
+}
+
+.petit-figure figcaption {
+	@apply mt-2 text-center text-xs text-muted-foreground;
+}
+
+/* Petit sidebar — minimal styling */
+[data-sidebar="sidebar"] {
+	@apply bg-background;
+}
+
+[data-slot="sidebar-header"] {
+	@apply p-5 pb-3;
+}
+
+[data-slot="sidebar-footer"] {
+	@apply p-5 pt-2;
+}
+
+[data-slot="sidebar-group"] {
+	@apply px-3 py-2;
+}
+
+[data-slot="sidebar-group-label"] {
+	@apply mb-1 px-2 text-[11px] font-semibold tracking-wider text-muted-foreground/60 uppercase;
+}
+
+[data-slot="sidebar-menu-button"] {
+	@apply rounded-none bg-transparent px-2 py-1.5 text-[13px] text-muted-foreground hover:bg-transparent hover:text-foreground;
+}
+
+[data-slot="sidebar-menu-button"][data-active="true"] {
+	@apply bg-transparent font-medium text-foreground;
+}
+
+/* Center sidebar layout */
+.petit-layout-center [data-slot="sidebar-wrapper"] {
+	@apply mx-auto max-w-7xl;
+}
+
+.petit-layout-center [data-slot="sidebar-container"] {
+	position: sticky !important;
+	top: 0 !important;
+	left: unset !important;
+	right: unset !important;
+	border: none !important;
+}
+
+.petit-layout-center [data-slot="sidebar-gap"] {
+	transition: none !important;
+}
+
+/* Cards */
+.petit-cards {
+	@apply my-6 grid gap-3 sm:grid-cols-2;
+}
+
+.petit-card {
+	@apply flex flex-col rounded-lg border border-border p-4 hover:bg-muted/50;
+	text-decoration: none !important;
+}
+
+.petit-card-title {
+	@apply block text-sm font-medium text-foreground;
+}
+
+.petit-card-description {
+	@apply block mt-1 text-xs text-muted-foreground leading-relaxed;
+}
+
+/* Type Table */
+.petit-type-table {
+	@apply my-6;
+}
+
+.petit-type-table * {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.petit-type-table-name {
+	@apply mb-1 text-sm font-semibold text-foreground;
+}
+
+.petit-type-table table {
+	@apply w-full text-xs;
+}
+
+.petit-type-table th {
+	@apply px-3 py-2 text-left font-medium text-muted-foreground;
+}
+
+.petit-type-table td {
+	@apply border-t px-3 py-2;
+}
+
+.petit-type-table td code {
+	@apply rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium;
+}
+
+/* Accordion */
+.petit-accordion {
+	@apply my-6 divide-y divide-border rounded-lg border;
+}
+
+.petit-accordion-trigger {
+	@apply flex w-full cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/50;
+}
+
+.petit-accordion-trigger::after {
+	content: "+";
+	@apply text-muted-foreground text-xs font-mono transition-transform;
+}
+
+.petit-accordion-item[open] .petit-accordion-trigger::after {
+	content: "\2212";
+}
+
+.petit-accordion-content {
+	@apply text-sm text-muted-foreground leading-relaxed;
+}
+
+.petit-accordion-content-inner {
+	@apply px-4 pb-4;
+}
+
+.petit-accordion-content-inner p {
+	@apply my-1;
+}
+
+/* Tabs (generic) — reuses .petit-tabs-header and .petit-tab-label from install tabs */
+.petit-tabs {
+	@apply my-6 overflow-hidden rounded-lg border border-border;
+}
+
+.petit-tabs > .petit-tab-panel {
+	@apply px-4 py-3 text-sm text-foreground;
+}
+
+.petit-install-tabs > .petit-tab-panel {
+	@apply p-0;
+}
+
+/* Steps */
+.petit-steps {
+	@apply my-6;
+}
+
+.petit-step {
+	@apply flex gap-4;
+}
+
+.petit-step-indicator {
+	@apply flex flex-col items-center;
+}
+
+.petit-step-number {
+	@apply flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-medium text-muted-foreground;
+}
+
+.petit-step-line {
+	@apply my-1 w-px flex-1 bg-border;
+}
+
+.petit-step-content {
+	@apply min-w-0 flex-1 pb-6;
+}
+
+.petit-step:last-child .petit-step-content {
+	@apply pb-0;
+}
+
+.petit-step-title {
+	@apply text-sm font-semibold text-foreground;
+	line-height: 1.75rem;
+}
+
+.petit-step-content p {
+	@apply mt-1.5 text-[13px] text-muted-foreground leading-relaxed;
+}
+
+.petit-step-content code {
+	@apply rounded bg-muted px-1.5 py-0.5 text-xs font-medium;
+}
+
+/* === Petit Animations === */
+
+:root {
+	--ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* === Cards === */
+.petit-card {
+	transition: transform 250ms var(--ease-spring), border-color 250ms ease, background-color 250ms ease, box-shadow 250ms ease;
+}
+
+.petit-card:hover {
+	transform: translateY(-3px);
+	border-color: var(--muted-foreground);
+	box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+.petit-card:active {
+	transform: translateY(0) scale(0.98);
+	transition-duration: 100ms;
+}
+
+@keyframes cardSlideUp {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.petit-card {
+	animation: cardSlideUp 350ms var(--ease-spring) backwards;
+}
+
+.petit-cards .petit-card:nth-child(1) { animation-delay: 0ms; }
+.petit-cards .petit-card:nth-child(2) { animation-delay: 60ms; }
+.petit-cards .petit-card:nth-child(3) { animation-delay: 120ms; }
+.petit-cards .petit-card:nth-child(4) { animation-delay: 180ms; }
+.petit-cards .petit-card:nth-child(5) { animation-delay: 240ms; }
+.petit-cards .petit-card:nth-child(6) { animation-delay: 300ms; }
+
+/* === Steps === */
+@keyframes stepReveal {
+	from {
+		opacity: 0;
+		transform: translateX(-12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.petit-step {
+	animation: stepReveal 400ms var(--ease-spring) backwards;
+}
+
+.petit-step:nth-child(1) { animation-delay: 0ms; }
+.petit-step:nth-child(2) { animation-delay: 80ms; }
+.petit-step:nth-child(3) { animation-delay: 160ms; }
+.petit-step:nth-child(4) { animation-delay: 240ms; }
+.petit-step:nth-child(5) { animation-delay: 320ms; }
+.petit-step:nth-child(6) { animation-delay: 400ms; }
+
+.petit-step-number {
+	transition: background-color 250ms ease, border-color 250ms ease, color 250ms ease;
+}
+
+/* === Accordion === */
+.petit-accordion-content {
+	overflow: hidden;
+}
+
+/* === Tabs === */
+.petit-tab-label {
+	transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease !important;
+	position: relative;
+}
+
+.petit-tab-label.petit-tab-active {
+	transition-duration: 150ms !important;
+}
+
+@keyframes tabContentFade {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.petit-tab-panel {
+	animation: tabContentFade 250ms var(--ease-spring);
+}
+
+/* === Codeblock === */
+@keyframes codeBlockSlide {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.petit-codeblock {
+	animation: codeBlockSlide 300ms var(--ease-spring);
+}
+
+/* Copy button */
+.petit-copy-btn {
+	transition: opacity 200ms ease, color 150ms ease, background-color 150ms ease !important;
+}
+
+pre:hover .petit-copy-btn {
+	opacity: 1 !important;
+}
+
+/* === Sidebar === */
+[data-slot="sidebar-menu-button"] {
+	transition: color 200ms ease, background-color 200ms ease, transform 200ms var(--ease-spring) !important;
+}
+
+[data-slot="sidebar-menu-button"]:active {
+	transform: scale(0.97);
+}
+
+[data-slot="sidebar-menu-button"][data-active="true"] {
+	transition-duration: 100ms !important;
+}
+
+/* === Type Table === */
+@keyframes tableRowFade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.petit-type-table tbody tr {
+	animation: tableRowFade 300ms var(--ease-spring) backwards;
+}
+
+.petit-type-table tbody tr:nth-child(1) { animation-delay: 0ms; }
+.petit-type-table tbody tr:nth-child(2) { animation-delay: 40ms; }
+.petit-type-table tbody tr:nth-child(3) { animation-delay: 80ms; }
+.petit-type-table tbody tr:nth-child(4) { animation-delay: 120ms; }
+.petit-type-table tbody tr:nth-child(5) { animation-delay: 160ms; }
+.petit-type-table tbody tr:nth-child(6) { animation-delay: 200ms; }
+.petit-type-table tbody tr:nth-child(7) { animation-delay: 240ms; }
+.petit-type-table tbody tr:nth-child(8) { animation-delay: 280ms; }
+
+/* === Install/Command Tabs === */
+.petit-install-tabs {
+	animation: codeBlockSlide 300ms var(--ease-spring);
+}
+
+/* === Buttons === */
+button[data-slot="button"],
+button[data-variant] {
+	transition: transform 150ms var(--ease-spring), background-color 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease !important;
+}
+
+button[data-slot="button"]:active,
+button[data-variant]:active {
+	transform: scale(0.96) !important;
+	transition-duration: 80ms !important;
+}
+
+/* === Links in prose === */
+.prose a {
+	transition: color 200ms ease, text-decoration-color 200ms ease !important;
+}
+
+/* === Search dialog === */
+[data-slot="dialog-overlay"] {
+	transition: opacity 200ms ease !important;
+}
+
+[data-slot="dialog-content"] {
+	animation: dialogSlideUp 300ms var(--ease-spring) !important;
+}
+
+@keyframes dialogSlideUp {
+	from {
+		opacity: 0;
+		transform: translateY(16px) scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* === Scroll-triggered fade (Intersection Observer) === */
+@keyframes scrollFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
