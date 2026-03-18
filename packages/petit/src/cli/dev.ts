@@ -7,7 +7,7 @@ import { findConfigFile } from "../config/loader"
 import { getPort } from "get-port-please"
 import * as log from "./logger"
 
-const VERSION = "0.2.0"
+const VERSION = createRequire(import.meta.url)("../../package.json").version as string
 
 /** Resolve the bundled app directory shipped inside the package */
 function resolveAppDir(): string {

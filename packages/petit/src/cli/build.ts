@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync, cpSync, rmSync } from "node:fs"
 import path from "node:path"
 import { createRequire } from "node:module"
 import { fileURLToPath } from "node:url"
@@ -15,7 +15,7 @@ import { getTheme } from "../themes"
 import type { SearchDocument } from "../search/types"
 import * as log from "./logger"
 
-const VERSION = "0.2.0"
+const VERSION = createRequire(import.meta.url)("../../package.json").version as string
 
 /** Resolve the bundled app directory shipped inside the package */
 function resolveAppDir(): string {
@@ -239,8 +239,17 @@ export const buildCommand = defineCommand({
 
 		child.on("exit", (code) => {
 			if (code === 0) {
+				// Nitro may output to appDir/.output instead of userCwd/.output
+				// Move it to the expected location if needed
+				const expectedOutput = path.resolve(userCwd, args.outDir ?? ".output")
+				const appOutput = path.join(appDir, ".output")
+				if (!existsSync(expectedOutput) && existsSync(appOutput)) {
+					cpSync(appOutput, expectedOutput, { recursive: true })
+					rmSync(appOutput, { recursive: true, force: true })
+				}
+
 				const elapsed = ((performance.now() - startTime) / 1000).toFixed(1)
-				const relOut = path.relative(userCwd, outputDir)
+				const relOut = path.relative(userCwd, path.join(expectedOutput, "public"))
 				log.buildDone(relOut, `${elapsed}s`)
 			} else {
 				log.error("Build failed")
