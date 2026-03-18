@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.12 (2026-03-18)
+
+- feat: add vite config hook to allow serving fonts from tmp dir
+- chore: update docs for railway support and move petit config back to vercel
+- chore: bump engine version
+- chore: change deploy petit config to node
+- docs: update netlify deployment documentation
+
+
 ## 0.1.11 (2026-03-18)
 
 - feat: add netlify flag support
