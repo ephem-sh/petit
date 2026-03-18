@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8 (2026-03-18)
+
+- fix: update media path for published template
+
+
 ## 0.1.7 (2026-03-18)
 
 - fix: update vercel vite config
