@@ -142,6 +142,10 @@ function runInstall(dir: string, pm: string): Promise<void> {
 			cwd: dir,
 			stdio: ["inherit", "pipe", "pipe"],
 			shell: true,
+			env: {
+				...process.env,
+				NODE_NO_WARNINGS: "1",
+			},
 		})
 		let stderr = ""
 		child.stdout?.on("data", () => {})

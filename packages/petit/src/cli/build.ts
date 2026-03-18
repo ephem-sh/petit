@@ -180,6 +180,7 @@ export const buildCommand = defineCommand({
 				if (clean.includes("manualChunks")) continue
 				if (clean.includes("chunkSizeWarningLimit")) continue
 				if (clean.includes("imported from external module")) continue
+				if (clean.includes("commonjs--resolver")) continue
 				console.log(line)
 			}
 		})
@@ -202,6 +203,13 @@ export const buildCommand = defineCommand({
 				if (clean.startsWith("(!)")) continue
 				if (clean.startsWith("- ") && clean.includes("(")) continue
 				if (clean.includes("tslib")) continue
+				if (clean.includes("commonjs--resolver")) continue
+				if (clean.includes("resolveId")) continue
+				if (clean.includes("options parameter")) continue
+				if (clean.includes("wrong module resolutions")) continue
+				if (clean.includes("early exit errors")) continue
+				if (clean.includes("mixed ES/CommonJS")) continue
+				if (clean.includes("can be ignored")) continue
 				process.stderr.write(line + "\n")
 			}
 		})
