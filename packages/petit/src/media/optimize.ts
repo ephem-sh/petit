@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs"
+import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"]
@@ -14,6 +14,13 @@ export async function optimizeImages(mediaRoot: string, outDir: string): Promise
 
 	const mediaOut = path.join(outDir, "media")
 	if (!existsSync(mediaOut)) mkdirSync(mediaOut, { recursive: true })
+
+	// Copy all media files as-is (originals needed for logos, favicons, etc.)
+	for (const file of readdirSync(mediaRoot)) {
+		const srcPath = path.join(mediaRoot, file)
+		const destPath = path.join(mediaOut, file)
+		cpSync(srcPath, destPath)
+	}
 
 	let sharp: typeof import("sharp")
 	try {
