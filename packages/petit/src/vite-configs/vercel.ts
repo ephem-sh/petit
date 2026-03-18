@@ -8,13 +8,18 @@ import { nitro } from "nitro/vite"
 import { petitPlugin } from "@ephem-sh/petit/plugin"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const userCwd = process.env.PETIT_USER_CWD || process.cwd()
 
 export default defineConfig({
 	plugins: [
 		petitPlugin({
 			userCwd: process.env.PETIT_USER_CWD,
 		}),
-		nitro(),
+		nitro({
+			output: {
+				dir: path.resolve(userCwd, ".vercel", "output"),
+			},
+		}),
 		tailwindcss(),
 		tanstackStart({ srcDirectory: "." }),
 		viteReact(),
