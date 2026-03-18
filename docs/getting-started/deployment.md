@@ -40,7 +40,7 @@ bun | string | - | Bun runtime via Nitro with the bun preset
 ## Cloudflare Workers
 
 Cloudflare Workers provides edge deployment with global
-distribution. Set the deploy target and build:
+distribution. Set the deploy target in your config:
 
 ```json petit.config.json
 {
@@ -50,24 +50,49 @@ distribution. Set the deploy target and build:
 }
 ```
 
+Petit generates a `wrangler.jsonc` and installs
+`@cloudflare/vite-plugin` and `wrangler` automatically
+inside the `.petit/` workspace during the build.
+
+### CI/CD with Cloudflare Workers
+
+Create a new Worker in the Cloudflare dashboard and connect
+your Git repository. Configure the build settings:
+
+```type-table
+# Build configuration
+Build command | string | npx @ephem-sh/petit@latest build | Scaffolds .petit/ workspace, installs deps, runs vite build
+Deploy command | string | cd .petit && npx wrangler deploy | Runs wrangler from inside .petit/ where node_modules lives
+Root directory | string | / | Your repository root
+```
+
+Add these build environment variables under **Settings >
+Build > Variables and secrets** (the build section, not the
+runtime one):
+
+```type-table
+# Build environment variables
+SKIP_DEPENDENCY_INSTALL | string | true | Skips Cloudflare's auto-install step (Petit handles its own deps)
+NODE_OPTIONS | string | --max-old-space-size=4096 | Increases memory for the vite build process
+```
+
+> **Note:** The `SKIP_DEPENDENCY_INSTALL` variable must be set
+> in the **build** variables section. Cloudflare's auto-install
+> runs before the build command and will fail on monorepo
+> lockfiles.
+
+### Local deployment
+
+To deploy from your local machine, build first, then run
+wrangler from the `.petit/` directory:
+
 ```command live
 @ephem-sh/petit build
 ```
 
-Petit generates a `wrangler.jsonc` and installs
-`@cloudflare/vite-plugin` and `wrangler` automatically during
-the build.
-
-To deploy from your local machine, authenticate with Cloudflare
-and run the deploy command:
-
 ```bash
-npx wrangler login
-npx wrangler deploy
+cd .petit && npx wrangler login && npx wrangler deploy
 ```
-
-For CI/CD, connect your repository in the Cloudflare dashboard.
-Set the build command to `npx @ephem-sh/petit build`.
 
 ## Netlify
 
