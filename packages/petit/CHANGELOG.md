@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 (2026-03-17)
+
+- fix: correct package.json paths in petit package
+- fix: move CI to package only, not on apps/docs
+- fix: move workflows to develop branch
+
+
 ## 0.1.2 (2026-03-17)
 
 - feat: fix convetions, og image generation, CI and release workflows
