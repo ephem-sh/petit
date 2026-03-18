@@ -40,11 +40,11 @@ Static output for Vercel, Cloudflare, Netlify
 ```steps
 # Scaffold
 Run `npx @ephem-sh/petit init` in your project root. This
-creates a `docs/` folder with a config and starter page.
+creates a config file and a starter docs folder.
 
 # Start
-Run `cd docs && npx @ephem-sh/petit dev` to preview your docs
-at `http://localhost:4321`. Changes are picked up automatically.
+Run `npx @ephem-sh/petit dev` to preview your docs at
+`http://localhost:4321`. Changes are picked up automatically.
 
 # Write
 Add markdown files to the directories in your sidebar config.

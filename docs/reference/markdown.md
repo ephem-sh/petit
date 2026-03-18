@@ -111,29 +111,15 @@ Standard markdown tables with alignment:
 
 ## Images
 
-Place images in a `media/` folder next to your config file.
-Reference them with a relative path:
+Reference images with `./media/` paths in your markdown:
 
 ```markdown
 ![Alt text](./media/screenshot.png)
 ```
 
-Petit rewrites `./media/` and `media/` paths automatically.
-Images with alt text are wrapped in a `<figure>` with a caption.
-
-### Theme-aware images
-
-Provide light and dark variants by naming them with `.light.`
-and `.dark.` suffixes:
-
-```markdown
-![Diagram](./media/diagram.light.png)
-![Diagram](./media/diagram.dark.png)
-```
-
-The light variant is hidden in dark mode and vice versa. This
-is useful for diagrams, screenshots, or logos that need
-different versions per color scheme.
+Petit rewrites these paths and serves files from your media
+directory. See the [media reference](/reference/media) for
+setup, theme-aware images, favicons, and optimization.
 
 ## Components
 

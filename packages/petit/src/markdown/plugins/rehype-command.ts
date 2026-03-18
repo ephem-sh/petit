@@ -9,6 +9,14 @@ const INSTALL_COMMANDS: Record<string, string> = {
 	yarn: "yarn add",
 }
 
+/** Runner command mappings for live/exec mode */
+const RUNNER_COMMANDS: Record<string, string> = {
+	npm: "npx",
+	pnpm: "pnpm dlx",
+	bun: "bun x",
+	yarn: "yarn dlx",
+}
+
 /** Default package managers shown when none are specified */
 const DEFAULT_MANAGERS = ["npm", "pnpm", "bun", "yarn"]
 
@@ -38,7 +46,7 @@ function txt(value: string): ElementContent {
 /** Detected command block type */
 type CommandType =
 	| { kind: "install"; packages: string }
-	| { kind: "command"; managers: string[]; content: string }
+	| { kind: "command"; managers: string[]; content: string; live: boolean }
 
 /** Detect whether a code element is an install or command block */
 function detectCommand(codeEl: Element): CommandType | undefined {
@@ -59,15 +67,18 @@ function detectCommand(codeEl: Element): CommandType | undefined {
 	const rawText = codeEl.children.map(extractText).join("").trim()
 
 	const meta =
+		(codeEl.data as Record<string, unknown> | undefined)?.meta as string | undefined ??
 		(codeEl.properties?.metastring as string | undefined) ??
 		(codeEl.properties?.dataMeta as string | undefined) ??
 		""
 
-	const managersFromMeta = meta.trim().split(/\s+/).filter(Boolean)
+	const tokens = meta.trim().split(/\s+/).filter(Boolean)
+	const live = tokens.includes("live")
+	const managersFromMeta = tokens.filter((t) => t !== "live")
 
 	const managers = managersFromMeta.length > 0 ? managersFromMeta : DEFAULT_MANAGERS
 
-	return { kind: "command", managers, content: rawText }
+	return { kind: "command", managers, content: rawText, live }
 }
 
 /** Build tab entries from a detected command type */
@@ -77,6 +88,14 @@ function buildTabs(cmd: CommandType): Array<{ id: string; label: string; command
 			id,
 			label: id,
 			command: `${INSTALL_COMMANDS[id]} ${cmd.packages}`,
+		}))
+	}
+
+	if (cmd.live) {
+		return cmd.managers.map((id) => ({
+			id,
+			label: id,
+			command: `${RUNNER_COMMANDS[id] ?? id} ${cmd.content}`,
 		}))
 	}
 

@@ -54,6 +54,20 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
 	const raw: unknown = JSON.parse(readFileSync(resolved, "utf-8"))
 	const parsed = petitConfigSchema.parse(raw)
 
+	const configDir = dirname(resolved)
+	const docsRoot = configDir
+
+	let mediaRoot: string
+	if (parsed.mediaDir) {
+		mediaRoot = resolve(configDir, parsed.mediaDir)
+	} else {
+		const candidates = [
+			resolve(configDir, "docs", "media"),
+			resolve(configDir, "media"),
+		]
+		mediaRoot = candidates.find((c) => existsSync(c)) ?? resolve(configDir, "docs", "media")
+	}
+
 	return {
 		title: parsed.title,
 		defaultScheme: parsed.defaultScheme ?? "system",
@@ -62,9 +76,9 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
 		themeOverrides: parsed.themeOverrides ?? {},
 		sidebar: parsed.sidebar ?? [],
 		configPath: resolved,
-		docsRoot: dirname(resolved),
-		logoPath: parsed.logo ? resolve(dirname(resolved), "media", parsed.logo.replace(/^\.?\//, "")) : undefined,
-		mediaRoot: resolve(dirname(resolved), "media"),
+		docsRoot,
+		logoPath: parsed.logo ? resolve(mediaRoot, parsed.logo.replace(/^\.?\//, "")) : undefined,
+		mediaRoot,
 		fonts: parsed.fonts,
 		maxWidth: parsed.maxWidth ?? "lg",
 		sidebarPosition: parsed.sidebarPosition ?? "left",

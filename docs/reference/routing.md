@@ -33,17 +33,18 @@ page in your sidebar.
 ## Sidebar structure
 
 The `sidebar` array in your config controls which directories
-Petit scans for content. Each `path` is relative to where the
-config file lives:
+Petit scans for content. Each `path` is relative to the config
+file:
 
 ```
-docs/                       <-- config is here
+my-project/
   petit.config.json
-  getting-started/          <-- path: "./getting-started"
-    overview.md
-    installation.md
-  api/                      <-- path: "./api"
-    authentication.md
+  docs/
+    getting-started/          <-- path: "./docs/getting-started"
+      overview.md
+      installation.md
+    api/                      <-- path: "./docs/api"
+      authentication.md
 ```
 
 ```json
@@ -58,7 +59,7 @@ docs/                       <-- config is here
 
 Each item becomes a category in the sidebar. The `label` is the
 category heading, and `path` points to a directory relative to
-your config file. Petit reads every `.md` and `.mdx` file in that
+the config file. Petit reads every `.md` and `.mdx` file in that
 directory and lists them under the category.
 
 Items without a `path` appear as non-clickable section headers.

@@ -86,6 +86,7 @@ function DocActions({ raw, title, filePath, repository, branch }: DocActionsProp
 				size="sm"
 				className="h-7 gap-1.5 text-xs text-muted-foreground rounded-sm"
 				onClick={handleCopy}
+				aria-label={copied ? "Copied" : "Copy markdown"}
 			>
 				{copied ? (
 					<>
@@ -106,6 +107,8 @@ function DocActions({ raw, title, filePath, repository, branch }: DocActionsProp
 					size="sm"
 					className="h-7 gap-1.5 text-xs text-muted-foreground rounded-sm"
 					onClick={() => setMenuOpen(!menuOpen)}
+					aria-haspopup="menu"
+					aria-expanded={menuOpen}
 				>
 					Open
 					<CaretDown className="size-3" />
@@ -117,17 +120,20 @@ function DocActions({ raw, title, filePath, repository, branch }: DocActionsProp
 							<div
 								className="fixed inset-0 z-40"
 								onClick={() => setMenuOpen(false)}
+								aria-hidden="true"
 							/>
 							<motion.div
 								initial={{ opacity: 0, scale: 0.96, y: -4 }}
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.96, y: -4 }}
 								transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+								role="menu"
 								className="absolute left-0 top-full z-50 mt-1 min-w-[220px] rounded-md border bg-popover p-1.5 shadow-md"
 							>
 								{openLinks.map((link) => (
 									<a
 										key={link.label}
+										role="menuitem"
 										href={link.onClick ? "#" : link.href}
 										target={link.onClick ? undefined : "_blank"}
 										rel={link.onClick ? undefined : "noopener noreferrer"}

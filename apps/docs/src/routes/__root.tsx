@@ -39,11 +39,24 @@ export const Route = createRootRoute({
 				name: "theme-color",
 				content: "#000000",
 			},
+			{
+				name: "generator",
+				content: "Petit",
+			},
 		],
 		links: [
 			...(config.favicon
 				? [{ rel: "icon", href: config.favicon }]
 				: []),
+			{
+				rel: "preconnect",
+				href: "https://fonts.googleapis.com",
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+				crossOrigin: "anonymous",
+			},
 			{
 				rel: "manifest",
 				href: "/manifest.json",
@@ -62,6 +75,15 @@ export const Route = createRootRoute({
 				href: "/llms-full.md",
 				title: "Full documentation for LLMs",
 			},
+			...(config.siteUrl
+				? [
+						{
+							rel: "sitemap",
+							type: "application/xml",
+							href: "/sitemap.xml",
+						},
+					]
+				: []),
 		],
 		scripts: [
 			{
@@ -134,6 +156,7 @@ function RootLayout() {
 								schemeSwitcher={config.schemeSwitcher}
 								title={config.title}
 								logo={config.logo ?? undefined}
+								logoDark={config.logoDark ?? undefined}
 								side="right"
 							/>
 						</>
@@ -146,6 +169,7 @@ function RootLayout() {
 								schemeSwitcher={config.schemeSwitcher}
 								title={config.title}
 								logo={config.logo ?? undefined}
+								logoDark={config.logoDark ?? undefined}
 							/>
 							<SidebarInset>
 								<header className="flex h-12 items-center gap-2 px-4 md:hidden">

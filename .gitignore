@@ -26,6 +26,10 @@ dist
 .tanstack
 .vinxi
 
+# Petit generated
+.petit/
+.petit-data.json
+
 # Debug
 npm-debug.log*
 
@@ -36,3 +40,4 @@ npm-debug.log*
 CLAUDE.md
 todo.md
 references
+publish.md

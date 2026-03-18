@@ -43,14 +43,18 @@ function hydrateCopyButtons(container: HTMLElement): void {
 		if (block.querySelector(".petit-copy-btn")) continue
 
 		const btn = document.createElement("button")
+		btn.type = "button"
 		btn.className = "petit-copy-btn"
 		btn.textContent = "Copy"
+		btn.setAttribute("aria-label", "Copy code")
 		btn.addEventListener("click", async () => {
 			const code = block.dataset.code ?? ""
 			await navigator.clipboard.writeText(code)
 			btn.textContent = "Copied!"
+			btn.setAttribute("aria-label", "Copied")
 			setTimeout(() => {
 				btn.textContent = "Copy"
+				btn.setAttribute("aria-label", "Copy code")
 			}, 2000)
 		})
 
@@ -94,9 +98,11 @@ function hydrateCopyHeadingLinks(container: HTMLElement): void {
 
 	for (const heading of headings) {
 		const btn = document.createElement("button")
+		btn.type = "button"
 		btn.className = "petit-copy-heading"
 		btn.innerHTML = COPY_ICON
 		btn.title = "Copy link"
+		btn.setAttribute("aria-label", "Copy link to section")
 
 		btn.addEventListener("click", (e) => {
 			e.preventDefault()
@@ -290,16 +296,20 @@ function hydrateThemePreview(container: HTMLElement): void {
 
 		for (const name of themeNames) {
 			const btn = document.createElement("button")
+			btn.type = "button"
 			btn.textContent = name.charAt(0).toUpperCase() + name.slice(1)
 			btn.className =
 				"px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-secondary hover:bg-accent transition-colors cursor-pointer"
 			btn.dataset.themeName = name
+			btn.setAttribute("aria-label", `Preview ${name} theme`)
+			btn.setAttribute("aria-pressed", "false")
 
 			btn.addEventListener("click", () => {
 				if (activeTheme === name) {
 					clearTheme()
 					for (const b of wrapper.querySelectorAll("button")) {
 						b.classList.remove("ring-2", "ring-primary")
+						b.setAttribute("aria-pressed", "false")
 					}
 					return
 				}
@@ -307,8 +317,10 @@ function hydrateThemePreview(container: HTMLElement): void {
 				applyTheme(name)
 				for (const b of wrapper.querySelectorAll("button")) {
 					b.classList.remove("ring-2", "ring-primary")
+					b.setAttribute("aria-pressed", "false")
 				}
 				btn.classList.add("ring-2", "ring-primary")
+				btn.setAttribute("aria-pressed", "true")
 			})
 
 			wrapper.appendChild(btn)

@@ -7,8 +7,8 @@ order: 4
 Petit builds to static files that work on any hosting platform.
 Run the build command and deploy the output directory.
 
-```bash
-npx @ephem-sh/petit build
+```command live
+@ephem-sh/petit build
 ```
 
 ## Vercel
@@ -56,7 +56,7 @@ generated.
 
 Petit converts PNG and JPG images to WebP at build time and
 generates responsive sizes (640px, 1024px, 1920px). This runs
-automatically during `petit build` if sharp is installed.
+automatically during `npx @ephem-sh/petit build` if sharp is installed.
 
 ## Offline support
 

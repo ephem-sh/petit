@@ -5,8 +5,7 @@ order: 3
 ---
 
 The `petit.config.json` file controls your site's appearance,
-navigation, and features. It lives in your docs directory,
-alongside your category folders.
+navigation, and features. It lives at your project root.
 
 ## Full example
 
@@ -15,7 +14,7 @@ Here is a config file using every available option:
 ```json
 {
   "title": "My Project",
-  "logo": "/logo.png",
+  "logo": "logo.png",
   "repository": "https://github.com/user/repo",
   "branch": "main",
   "siteUrl": "https://docs.example.com",
@@ -30,9 +29,9 @@ Here is a config file using every available option:
   "sidebarPosition": "left",
   "toc": true,
   "sidebar": [
-    { "label": "Getting Started", "path": "./getting-started" },
-    { "label": "API Reference", "path": "./api" },
-    { "label": "Examples", "path": "./examples" }
+    { "label": "Getting Started", "path": "./docs/getting-started" },
+    { "label": "API Reference", "path": "./docs/api" },
+    { "label": "Examples", "path": "./docs/examples" }
   ]
 }
 ```
@@ -44,7 +43,8 @@ Only `title` is required. Everything else has sensible defaults.
 ```type-table
 # PetitConfig
 title | string | required | Site title in the sidebar header
-logo | string | - | Logo image path, relative to config file
+logo | string | - | Logo filename, resolved from media directory
+mediaDir | string | auto | Path to media/images directory, relative to config
 repository | string | - | GitHub URL, adds "Edit on GitHub" links
 branch | string | "main" | Git branch for "Edit on GitHub" links
 siteUrl | string | - | Production URL, enables SEO (sitemap, OG images, llms.txt)
@@ -61,23 +61,35 @@ sidebar | SidebarItem[] | [] | Navigation structure (see below)
 
 ## Sidebar
 
-Each sidebar entry has a `label` and an optional `path`. Entries
-with a `path` scan that folder for `.md` files. Entries without
-a `path` are non-clickable section headers.
+Each sidebar entry has a `label` and an optional `path`. Paths
+point directly to folders containing `.md` files, relative to
+the config file:
 
 ```json
 {
   "sidebar": [
-    { "label": "Getting Started", "path": "./getting-started" },
+    { "label": "Getting Started", "path": "./docs/getting-started" },
     { "label": "Reference" },
-    { "label": "Core", "path": "./reference/core" },
-    { "label": "Plugins", "path": "./reference/plugins" }
+    { "label": "Core", "path": "./docs/reference/core" },
+    { "label": "Plugins", "path": "./docs/reference/plugins" }
   ]
 }
 ```
 
 "Reference" here is a visual divider. "Core" and "Plugins" each
 list the pages found in their directories.
+
+In a monorepo you can pull docs from multiple locations:
+
+```json
+{
+  "sidebar": [
+    { "label": "Getting Started", "path": "./docs/getting-started" },
+    { "label": "Core API", "path": "./packages/core/docs" },
+    { "label": "CLI", "path": "./packages/cli/docs" }
+  ]
+}
+```
 
 For page ordering, URL generation, frontmatter fields, and draft
 pages, see the [routing reference](/reference/routing).

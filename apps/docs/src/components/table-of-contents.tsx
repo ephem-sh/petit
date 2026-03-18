@@ -53,13 +53,14 @@ function TableOfContents({ headings }: TableOfContentsProps) {
 	if (filtered.length === 0) return null
 
 	return (
-		<nav className="sticky top-20">
+		<nav className="sticky top-20" aria-label="Table of contents">
 			<p className="mb-3 text-xs font-medium text-muted-foreground">On this page</p>
 			<ul className="space-y-1">
 				{filtered.map((heading) => (
 					<li key={heading.id}>
 						<a
 							href={`#${heading.id}`}
+							aria-current={activeId === heading.id ? "location" : undefined}
 							className={cn(
 								"block text-xs leading-6 text-muted-foreground transition-colors hover:text-foreground",
 								heading.depth === 3 && "pl-3",

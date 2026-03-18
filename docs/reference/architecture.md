@@ -11,7 +11,7 @@ anywhere. This page explains what happens at each stage.
 
 ## The big picture
 
-When you run `petit dev` or `petit build`, the pipeline flows
+When you run `npx @ephem-sh/petit dev` or `npx @ephem-sh/petit build`, the pipeline flows
 through four stages:
 
 ```mermaid
@@ -118,7 +118,7 @@ You can override individual CSS variables per scheme using the
 
 ## Build pipeline
 
-The `petit build` command runs through these steps:
+The `npx @ephem-sh/petit build` command runs through these steps:
 
 ```steps
 # Load and scan

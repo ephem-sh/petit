@@ -41,18 +41,23 @@ interface SidebarProps {
 	title: string
 	/** Logo URL */
 	logo?: string
+	/** Dark mode logo URL */
+	logoDark?: string
 	/** Sidebar side (for shadcn Sidebar) */
 	side?: "left" | "right"
 }
 
 /** Sidebar navigation with categories and entry links */
-function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, logo, side }: SidebarProps) {
+function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, logo, logoDark, side }: SidebarProps) {
 	return (
 		<Sidebar side={side}>
 			<SidebarHeader className="p-4">
-				<Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight py-8">
+				<Link to="/" aria-label={title} className="flex items-center gap-2 text-sm font-semibold tracking-tight pt-6 pb-8">
 					{logo ? (
-						<img src={logo} alt={title} className="h-7" />
+						<>
+							<img src={logo} alt={title} className={logoDark ? "h-9 dark:hidden" : "h-9"} />
+							{logoDark && <img src={logoDark} alt={title} className="h-9 hidden dark:block" />}
+						</>
 					) : (
 						title
 					)}
@@ -62,6 +67,7 @@ function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title
 						variant="outline"
 						className="h-8 flex-1 justify-between text-muted-foreground rounded-full"
 						onClick={onSearchOpen}
+						aria-label="Search documentation"
 					>
 						<span className="flex items-center gap-2">
 							<MagnifyingGlass className="size-3.5" />
@@ -85,7 +91,7 @@ function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title
 								{category.entries.map((entry) => (
 									<SidebarMenuItem key={entry.slug}>
 										<SidebarMenuButton asChild isActive={currentSlug === entry.slug}>
-											<Link to={`/${entry.slug}` as LinkProps["to"]}>
+											<Link to={`/${entry.slug}` as LinkProps["to"]} aria-current={currentSlug === entry.slug ? "page" : undefined}>
 												{entry.label}
 											</Link>
 										</SidebarMenuButton>

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/$")({
 		const pageTitle = title ? `${title} | ${config.title}` : config.title
 		const siteUrl = config.siteUrl
 		const canonicalUrl = siteUrl ? `${siteUrl}/${slug}` : undefined
-		const ogImageSlug = slug.replace(/\//g, "-")
+		const ogImageSlug = (slug.includes("/") ? slug.slice(slug.indexOf("/") + 1) : slug).replace(/\//g, "-")
 		const ogImageUrl = siteUrl ? `${siteUrl}/og/${ogImageSlug}.png` : undefined
 
 		return {
@@ -48,6 +48,7 @@ export const Route = createFileRoute("/$")({
 				{ name: "twitter:title", content: title ?? config.title },
 				...(description ? [{ name: "twitter:description", content: description }] : []),
 				...(ogImageUrl ? [{ name: "twitter:image", content: ogImageUrl }] : []),
+				...(doc?.lastModified ? [{ property: "article:modified_time", content: doc.lastModified }] : []),
 			],
 			links: [
 				...(canonicalUrl ? [{ rel: "canonical", href: canonicalUrl }] : []),
@@ -63,6 +64,7 @@ export const Route = createFileRoute("/$")({
 								description,
 								...(canonicalUrl ? { url: canonicalUrl } : {}),
 								...(ogImageUrl ? { image: ogImageUrl } : {}),
+								...(doc?.lastModified ? { dateModified: doc.lastModified } : {}),
 							}),
 						},
 					]
@@ -148,11 +150,12 @@ function DocPagination({ slug }: { slug: string }) {
 	if (!prev && !next) return null
 
 	return (
-		<nav className="mt-16 flex items-center justify-between border-t pt-6">
+		<nav className="mt-16 flex items-center justify-between border-t pt-6" aria-label="Pagination">
 			{prev ? (
 				<Link
 					to={`/${prev.slug}` as LinkProps["to"]}
 					className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+					aria-label={"Previous: " + prev.label}
 				>
 					<ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
 					{prev.label}
@@ -164,6 +167,7 @@ function DocPagination({ slug }: { slug: string }) {
 				<Link
 					to={`/${next.slug}` as LinkProps["to"]}
 					className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+					aria-label={"Next: " + next.label}
 				>
 					{next.label}
 					<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />

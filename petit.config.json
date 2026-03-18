@@ -1,6 +1,6 @@
 {
 	"title": "Petit",
-	"logo": "/logo.png",
+	"logo": "logo.png",
 	"repository": "https://github.com/ephem-sh/petit",
 	"branch": "develop",
 	"siteUrl": "https://petit.ephem.sh",
@@ -11,8 +11,8 @@
 	"sidebarPosition": "center",
 	"toc": true,
 	"sidebar": [
-		{ "label": "Getting Started", "path": "./getting-started" },
-		{ "label": "Components", "path": "./components" },
-		{ "label": "Reference", "path": "./reference" }
+		{ "label": "Getting Started", "path": "./docs/getting-started" },
+		{ "label": "Components", "path": "./docs/components" },
+		{ "label": "Reference", "path": "./docs/reference" }
 	]
 }

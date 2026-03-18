@@ -1,21 +1,19 @@
-# shadcn/ui monorepo template
+# Petit
 
-This is a TanStack Start monorepo template with shadcn/ui.
+Small, fast, local-first documentation. Write markdown, run a
+command, get a full docs site with search, SEO, and 18 themes.
 
-## Adding components
-
-To add components to your app, run the following command at the root of your `web` app:
+## Quick start
 
 ```bash
-pnpm dlx shadcn@latest add button -c apps/web
+npx @ephem-sh/petit init
+npx @ephem-sh/petit dev
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
+## Documentation
 
-## Using components
+[petit.ephem.sh](https://petit.ephem.sh)
 
-To use the components in your app, import them from the `ui` package.
+## License
 
-```tsx
-import { Button } from "@workspace/ui/components/button";
-```
+MIT

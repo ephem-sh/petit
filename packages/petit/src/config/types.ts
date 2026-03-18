@@ -29,6 +29,8 @@ export interface ThemeConfig {
 export interface PetitConfig {
 	/** Site title */
 	title: string
+	/** Path to media/images directory, relative to config file (default: "./docs/media") */
+	mediaDir?: string
 	/** Default color scheme */
 	defaultScheme?: "dark" | "light" | "system"
 	/** Show color scheme switcher toggle */
@@ -63,7 +65,7 @@ export interface PetitConfig {
 }
 
 /** Resolved config with all defaults applied */
-export interface ResolvedConfig extends Required<Omit<PetitConfig, "theme" | "themeOverrides" | "sidebar" | "logo" | "maxWidth" | "sidebarPosition" | "repository" | "branch" | "siteUrl" | "fonts">> {
+export interface ResolvedConfig extends Required<Omit<PetitConfig, "theme" | "themeOverrides" | "sidebar" | "logo" | "maxWidth" | "sidebarPosition" | "repository" | "branch" | "siteUrl" | "fonts" | "mediaDir">> {
 	/** Custom font overrides */
 	fonts?: {
 		sans?: string
@@ -87,7 +89,7 @@ export interface ResolvedConfig extends Required<Omit<PetitConfig, "theme" | "th
 	sidebar: SidebarItem[]
 	/** Absolute path to the config file */
 	configPath: string
-	/** Absolute directory of the config file (docs root) */
+	/** Absolute path to the documentation directory */
 	docsRoot: string
 	/** Absolute path to logo image, or undefined */
 	logoPath?: string

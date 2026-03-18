@@ -23,6 +23,7 @@ export const themeConfigSchema = z.object({
 /** Zod schema that validates a PetitConfig object */
 export const petitConfigSchema = z.object({
 	title: z.string(),
+	mediaDir: z.string().optional(),
 	defaultScheme: z.enum(["dark", "light", "system"]).optional(),
 	schemeSwitcher: z.boolean().optional(),
 	theme: z.string().optional(),

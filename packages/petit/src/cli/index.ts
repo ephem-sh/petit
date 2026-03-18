@@ -2,7 +2,6 @@
 import { defineCommand, runMain } from "citty"
 import { devCommand } from "./dev"
 import { buildCommand } from "./build"
-import { serveCommand } from "./serve"
 import { initCommand } from "./init"
 import { configCommand } from "./config"
 import { exportCommand } from "./export"
@@ -23,7 +22,6 @@ const main = defineCommand({
 	subCommands: {
 		dev: devCommand,
 		build: buildCommand,
-		serve: serveCommand,
 		init: initCommand,
 		config: configCommand,
 		export: exportCommand,

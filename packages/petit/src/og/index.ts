@@ -44,7 +44,8 @@ export async function generateOgImages(options: {
 			mutedColor: options.mutedColor,
 		})
 
-		const filename = slug.replace(/\//g, "-") + ".png"
+		const normalized = slug.includes("/") ? slug.slice(slug.indexOf("/") + 1) : slug
+		const filename = normalized.replace(/\//g, "-") + ".png"
 		writeFileSync(path.join(ogDir, filename), png)
 		console.log(`[petit] Generated OG image: og/${filename}`)
 	}
