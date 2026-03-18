@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 (2026-03-18)
+
+- feat: scaffold .petit/ build workspace instead of building inside npm cache
+
+
 ## 0.1.5 (2026-03-18)
 
 - feat: handle multiple packages on output dir
