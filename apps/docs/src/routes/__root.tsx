@@ -11,9 +11,9 @@ import {
 	SidebarInset,
 	SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { config } from "@/.petit/config"
-import { sidebar } from "@/.petit/sidebar"
-import { configError } from "@/.petit/error"
+import { config } from "virtual:petit/config"
+import { sidebar } from "virtual:petit/sidebar"
+import { configError } from "virtual:petit/error"
 
 /** Inline script that runs before paint to apply the theme class and prevent flash */
 const themeScript = `(function(){try{var t=localStorage.getItem("petit-theme")||"${config.defaultScheme}";var d=t==="system"?window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light":t;document.documentElement.classList.toggle("dark",d==="dark")}catch(e){}})()`
@@ -22,7 +22,7 @@ import { DocsSidebar } from "@/components/docs-sidebar"
 import { ConfigError } from "@/components/config-error"
 import { SearchDialog } from "@/components/search-dialog"
 
-import "@/.petit/theme.css"
+import "virtual:petit/theme.css"
 import appCss from "@workspace/ui/globals.css?url"
 
 export const Route = createRootRoute({

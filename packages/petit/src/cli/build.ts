@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
+import { createRequire } from "node:module"
 import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
 import { defineCommand } from "citty"
@@ -7,30 +8,30 @@ import { loadConfig } from "../config/loader"
 import { scanSidebar } from "../sidebar/scanner"
 import { parseDocument } from "../markdown/parse"
 import { buildSearchIndex, stripHtml } from "../search/indexer"
-import { writeData } from "../server/data-writer"
 import { generateOgImages } from "../og/index"
 import { optimizeImages } from "../media/optimize"
 import { generateSitemap, generateRobots, generateLlmsTxt, generateLlmsFullMd, writeMarkdownFiles } from "../seo/index"
 import { getTheme } from "../themes"
 import type { SearchDocument } from "../search/types"
-import type { PetitData, PetitDataDocument } from "../server/data-writer"
+import * as log from "./logger"
 
-/**
- * Walk up from a starting directory to find the monorepo root (containing `turbo.json`),
- * then resolve `apps/docs` from there.
- */
-function resolveAppRoot(): string {
-	let dir = path.dirname(fileURLToPath(import.meta.url))
-	while (dir !== path.dirname(dir)) {
-		if (existsSync(path.join(dir, "turbo.json"))) {
-			return path.join(dir, "apps", "docs")
-		}
-		dir = path.dirname(dir)
-	}
-	throw new Error("Could not find monorepo root. Ensure turbo.json exists at the project root.")
+const VERSION = "0.2.0"
+
+/** Resolve the bundled app directory shipped inside the package */
+function resolveAppDir(): string {
+	const thisFile = fileURLToPath(import.meta.url)
+	return path.resolve(path.dirname(thisFile), "..", "app")
 }
 
-/** The `petit build` command — builds static documentation */
+/** Find the vite CLI entry point via require.resolve */
+function resolveViteBin(): string {
+	const req = createRequire(import.meta.url)
+	const vitePkg = req.resolve("vite/package.json")
+	const viteDir = path.dirname(vitePkg)
+	return path.join(viteDir, "bin", "vite.js")
+}
+
+/** The `petit build` command -- builds static documentation */
 export const buildCommand = defineCommand({
 	meta: {
 		name: "build",
@@ -42,26 +43,33 @@ export const buildCommand = defineCommand({
 			description: "Path to config file",
 			required: false,
 		},
+		outDir: {
+			type: "string",
+			description: "Output directory (default: .output)",
+			required: false,
+		},
 	},
 	async run({ args }) {
+		const startTime = performance.now()
+		const userCwd = process.cwd()
+
+		log.banner(VERSION)
+
 		const config = await loadConfig(args.config || undefined)
 		const sidebar = await scanSidebar(config)
-
 		const theme = getTheme(config.theme)
 		const searchDocs: SearchDocument[] = []
-		const docs: Record<string, PetitDataDocument> = {}
 		const rawDocs: Record<string, string> = {}
+
+		const totalEntries = sidebar.reduce((sum, cat) => sum + cat.entries.filter(e => !e.draft).length, 0)
+		log.info(`${config.title}`)
+		log.info(`${totalEntries} document${totalEntries !== 1 ? "s" : ""}, ${sidebar.length} categor${sidebar.length !== 1 ? "ies" : "y"}`)
 
 		for (const category of sidebar) {
 			for (const entry of category.entries) {
 				if (entry.draft) continue
 
 				const parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark } })
-				docs[entry.slug] = {
-					html: parsed.html,
-					frontmatter: parsed.frontmatter,
-					headings: parsed.headings,
-				}
 				rawDocs[entry.slug] = parsed.raw
 
 				searchDocs.push({
@@ -87,109 +95,155 @@ export const buildCommand = defineCommand({
 			}
 		}
 
-		const data: PetitData = {
-			config: {
-				title: config.title,
-				defaultScheme: config.defaultScheme,
-				schemeSwitcher: config.schemeSwitcher,
-				theme: config.theme,
-				themeOverrides: config.themeOverrides,
-			},
-			sidebar: sidebar.map(cat => ({
-				label: cat.label,
-				entries: cat.entries.map(e => ({
-					label: e.label,
-					slug: e.slug,
-					draft: e.draft,
-				})),
-			})),
-			docs,
-		}
-
-		const appRoot = resolveAppRoot()
-		await writeData(appRoot, data)
 		await buildSearchIndex(searchDocs)
+		log.success("markdown parsed, search index built")
 
-		console.log(`[petit] Built ${Object.keys(docs).length} documents, search index ready`)
+		// Output directory for static assets (SEO files, OG images)
+		const outputDir = path.resolve(userCwd, args.outDir ?? ".output", "public")
+		if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true })
 
-		// Generate SEO assets if siteUrl is configured
+		// Generate SEO assets
 		if (config.siteUrl) {
-			const appPublic = path.join(appRoot, "public")
-			if (!existsSync(appPublic)) mkdirSync(appPublic, { recursive: true })
-
-			// Generate sitemap.xml
 			const sitemapXml = generateSitemap(sidebar, config.siteUrl)
-			writeFileSync(path.join(appPublic, "sitemap.xml"), sitemapXml, "utf-8")
-			console.log("[petit] Generated sitemap.xml")
+			writeFileSync(path.join(outputDir, "sitemap.xml"), sitemapXml, "utf-8")
 
-			// Generate robots.txt
 			const robotsTxt = generateRobots(config.siteUrl)
-			writeFileSync(path.join(appPublic, "robots.txt"), robotsTxt, "utf-8")
-			console.log("[petit] Generated robots.txt")
+			writeFileSync(path.join(outputDir, "robots.txt"), robotsTxt, "utf-8")
+
+			const llmsTxt = generateLlmsTxt(sidebar, config.siteUrl, config.title)
+			writeFileSync(path.join(outputDir, "llms.txt"), llmsTxt, "utf-8")
+
+			const docsWithRaw: Record<string, { raw: string; frontmatter: { title?: string; description?: string } }> = {}
+			for (const category of sidebar) {
+				for (const entry of category.entries) {
+					if (entry.draft) continue
+					docsWithRaw[entry.slug] = {
+						raw: rawDocs[entry.slug] ?? "",
+						frontmatter: { title: entry.label },
+					}
+				}
+			}
+
+			const llmsFullMd = generateLlmsFullMd(sidebar, docsWithRaw, config.title)
+			writeFileSync(path.join(outputDir, "llms-full.md"), llmsFullMd, "utf-8")
+
+			writeMarkdownFiles(sidebar, docsWithRaw, outputDir)
+			log.success("SEO assets generated")
 
 			// Generate OG images
-			const theme = getTheme(config.theme)
 			try {
 				await generateOgImages({
 					sidebar,
-					docs,
+					docs: Object.fromEntries(
+						sidebar.flatMap(cat =>
+							cat.entries.filter(e => !e.draft).map(e => [e.slug, { frontmatter: { title: e.label } }])
+						),
+					) as Record<string, { frontmatter: { title?: string; description?: string } }>,
 					siteName: config.title,
-					outDir: appPublic,
+					outDir: outputDir,
 					bgColor: theme.dark.background,
 					fgColor: theme.dark.foreground,
 					mutedColor: theme.dark["muted-foreground"],
 				})
-				console.log("[petit] OG images generated")
+				log.success("OG images generated")
 			} catch (err) {
-				console.warn("[petit] Skipping OG images:", err instanceof Error ? err.message : String(err))
+				log.warn(`OG images skipped: ${err instanceof Error ? err.message : String(err)}`)
 			}
-
-			// Generate llms.txt
-			const llmsTxt = generateLlmsTxt(sidebar, config.siteUrl, config.title)
-			writeFileSync(path.join(appPublic, "llms.txt"), llmsTxt, "utf-8")
-			console.log("[petit] Generated llms.txt")
-
-			// Generate llms-full.md
-			const docsWithRaw: Record<string, { raw: string; frontmatter: { title?: string; description?: string } }> = {}
-			for (const [slug, doc] of Object.entries(docs)) {
-				docsWithRaw[slug] = {
-					raw: rawDocs[slug] ?? "",
-					frontmatter: doc.frontmatter,
-				}
-			}
-			const llmsFullMd = generateLlmsFullMd(sidebar, docsWithRaw, config.title)
-			writeFileSync(path.join(appPublic, "llms-full.md"), llmsFullMd, "utf-8")
-			console.log("[petit] Generated llms-full.md")
-
-			// Generate individual .md files
-			writeMarkdownFiles(sidebar, docsWithRaw, appPublic)
-			console.log("[petit] Generated individual .md files")
 		}
 
 		// Optimize media images
 		try {
-			await optimizeImages(config.mediaRoot, path.join(appRoot, "public"))
-			console.log("[petit] Image optimization complete")
+			await optimizeImages(config.mediaRoot, outputDir)
+			log.success("images optimized")
 		} catch (err) {
-			console.warn("[petit] Skipping image optimization:", err instanceof Error ? err.message : String(err))
+			log.warn(`image optimization skipped: ${err instanceof Error ? err.message : String(err)}`)
 		}
 
-		console.log(`[petit] Building static site...`)
+		// Build with vite
+		const appDir = resolveAppDir()
 
-		const child = spawn("npx", ["vite", "build"], {
-			cwd: appRoot,
-			stdio: "inherit",
-			shell: process.platform === "win32",
+		const viteBin = resolveViteBin()
+		const viteConfig = path.join(appDir, "vite.config.ts")
+
+		const child = spawn(process.execPath, [viteBin, "build", "--config", viteConfig], {
+			cwd: appDir,
+			stdio: ["inherit", "pipe", "pipe"],
+			env: {
+				...process.env,
+				PETIT_CONFIG_PATH: config.configPath,
+				PETIT_USER_CWD: userCwd,
+			},
+		})
+
+		// Capture vite build output, suppress noise
+		child.stdout?.on("data", (data: Buffer) => {
+			const text = data.toString()
+			for (const line of text.split("\n")) {
+				const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim()
+				if (!clean) continue
+				if (clean.startsWith("[petit]")) continue
+				if (clean.startsWith("vite v")) continue
+				if (clean.includes("building")) continue
+				if (clean.includes("transforming")) continue
+				if (clean.includes("rendering chunks")) continue
+				if (clean.includes("computing gzip")) continue
+				if (clean.includes("built in")) continue
+				if (clean.includes("Generated")) continue
+				if (clean.includes("nitro")) continue
+				if (clean.includes("vite preview")) continue
+				if (clean.includes("modules transformed")) continue
+				if (clean.includes("Tracing dependencies")) continue
+				if (clean.includes("Traced")) continue
+				if (clean.includes("Ensure your production")) continue
+				if (clean.startsWith("- ") && /\(\d/.test(clean)) continue
+				if (/\d+\.\d+\s*kB/.test(clean)) continue
+				if (/\d+\.\d+\s*KB/.test(clean)) continue
+				if (clean.includes("use client")) continue
+				if (clean.includes("was ignored")) continue
+				if (clean.includes("chunks are larger than")) continue
+				if (clean.includes("dynamic import()")) continue
+				if (clean.includes("manualChunks")) continue
+				if (clean.includes("chunkSizeWarningLimit")) continue
+				if (clean.includes("imported from external module")) continue
+				// Pass through anything unexpected
+				console.log(line)
+			}
+		})
+
+		child.stderr?.on("data", (data: Buffer) => {
+			const text = data.toString()
+			for (const line of text.split("\n")) {
+				const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim()
+				if (!clean) continue
+				if (clean.includes("DeprecationWarning") || clean.includes("--trace-deprecation")) continue
+				if (clean.includes("use client")) continue
+				if (clean.includes("was ignored")) continue
+				if (clean.includes("Module level directives")) continue
+				if (clean.includes("chunks are larger than")) continue
+				if (clean.includes("dynamic import()")) continue
+				if (clean.includes("manualChunks")) continue
+				if (clean.includes("chunkSizeWarningLimit")) continue
+				if (clean.includes("imported from external module")) continue
+				if (clean.includes("never used in")) continue
+				if (clean.startsWith("(!)")) continue
+				if (clean.startsWith("- ") && clean.includes("(")) continue
+				if (clean.includes("tslib")) continue
+				process.stderr.write(line + "\n")
+			}
 		})
 
 		child.on("error", (err) => {
-			console.error(`[petit] Failed to build: ${err.message}`)
+			log.error(`Build failed: ${err.message}`)
 			process.exit(1)
 		})
 
 		child.on("exit", (code) => {
 			if (code === 0) {
-				console.log(`[petit] Build complete`)
+				const elapsed = ((performance.now() - startTime) / 1000).toFixed(1)
+				const relOut = path.relative(userCwd, outputDir)
+				log.buildDone(relOut, `${elapsed}s`)
+			} else {
+				log.error("Build failed")
 			}
 			process.exit(code ?? 0)
 		})

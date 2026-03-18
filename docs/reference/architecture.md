@@ -17,12 +17,12 @@ through four stages:
 ```mermaid
 graph TD
     A[Markdown files + config] --> B[Parse and scan]
-    B --> C[Generate code]
+    B --> C[Virtual modules]
     C --> D[Vite build]
     D --> E[SEO assets]
 
     B -.- B1[frontmatter, HTML, headings]
-    C -.- C1[src/.petit/config.ts, sidebar.ts, docs.ts]
+    C -.- C1[virtual:petit/config, sidebar, docs]
     D -.- D1[static HTML + JS + CSS]
     E -.- E1[sitemap, robots.txt, OG images, llms.txt]
 ```
@@ -67,25 +67,24 @@ During startup, the plugin:
 2. Loads and validates the config with Zod
 3. Scans sidebar directories for `.md` and `.mdx` files
 4. Parses every document through the markdown pipeline
-5. Writes generated TypeScript files to `src/.petit/`
+5. Serves generated data as virtual modules (`virtual:petit/*`)
 
-The generated files are regular TypeScript modules that the
-React app imports directly:
+The generated data is served as Vite virtual modules. The React
+app imports these directly:
 
-| File | Contents |
-|------|----------|
-| `config.ts` | Site title, theme, layout settings, siteUrl |
-| `sidebar.ts` | Categories and entries with labels, slugs, draft status |
-| `docs.ts` | All parsed docs: HTML, raw markdown, frontmatter, headings |
-| `theme.css` | CSS variables for colors, fonts, and prose styling |
-| `error.ts` | Config validation error or null |
-| `search.ts` | Serialized Orama search index with all page and heading entries |
+| Module | Contents |
+|--------|----------|
+| `virtual:petit/config` | Site title, theme, layout settings, siteUrl |
+| `virtual:petit/sidebar` | Categories and entries with labels, slugs, draft status |
+| `virtual:petit/docs` | All parsed docs: HTML, raw markdown, frontmatter, headings |
+| `virtual:petit/theme.css` | CSS variables for colors, fonts, and prose styling |
+| `virtual:petit/error` | Config validation error or null |
+| `virtual:petit/search` | Serialized Orama search index with all page and heading entries |
 
 In dev mode, the plugin watches your docs directory and config
-file. When you save a change, it rebuilds the state and rewrites
-the generated files. Vite's HMR picks up the changes and updates
-the browser. The debounce interval is 300ms to avoid excessive
-rebuilds during rapid edits.
+file. When you save a change, it rebuilds state, invalidates the
+virtual modules, and triggers a full reload. The debounce interval
+is 300ms to avoid excessive rebuilds during rapid edits.
 
 ## Search
 
@@ -108,7 +107,8 @@ code highlighting themes, and prose typography settings. The
 default theme ships with both light and dark schemes.
 
 At build time, the theme definition is converted into CSS custom
-properties and written to `src/.petit/theme.css`. The frontend
+properties and served as the `virtual:petit/theme.css` virtual
+module. The frontend
 reads these variables for all styling, which means changing a
 theme takes effect across every component without modifying React
 code.
@@ -134,16 +134,14 @@ are served from cache for faster rebuilds.
 Strips HTML from rendered output and indexes the plain text with
 Orama for client-side full-text search.
 
-# Write data
-Writes `.petit-data.json` with all parsed docs, sidebar structure,
-and config for the Vite plugin to consume.
-
 # Generate SEO assets
 If `siteUrl` is configured, generates sitemap.xml, robots.txt,
 OG images, llms.txt, llms-full.md, and individual .md files.
 
 # Vite build
-Runs `vite build` to produce the final static HTML, JS, and CSS.
+Spawns Vite with the bundled app. The Vite plugin loads config
+and docs as virtual modules. TanStack Start pre-renders all
+pages to static HTML, JS, and CSS.
 ```
 
 The output is a standard static site. HTML pages are pre-rendered
@@ -159,5 +157,5 @@ block copy buttons.
 | Search index | Rebuilt on changes | Built once, serialized |
 | OG images | Skipped (too slow) | Generated as PNGs |
 | .md endpoints | Served from memory | Static files in public/ |
-| Theme CSS | Written to src/.petit/ | Bundled by Vite |
+| Theme CSS | Virtual module | Bundled by Vite |
 | HMR | Yes (300ms debounce) | N/A |

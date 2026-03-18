@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router"
-import { sidebar } from "@/.petit/sidebar"
+import { sidebar } from "virtual:petit/sidebar"
 
 export const Route = createFileRoute("/")({
 	component: IndexRedirect,

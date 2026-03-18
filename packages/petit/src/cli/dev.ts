@@ -1,32 +1,29 @@
-import { existsSync } from "node:fs"
 import path from "node:path"
+import { createRequire } from "node:module"
 import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
 import { defineCommand } from "citty"
-import { watch } from "chokidar"
-import { loadConfig } from "../config/loader"
-import { scanSidebar } from "../sidebar/scanner"
-import { parseDocument } from "../markdown/parse"
+import { findConfigFile } from "../config/loader"
 import { getPort } from "get-port-please"
-import { writeData } from "../server/data-writer"
-import type { PetitData, PetitDataDocument } from "../server/data-writer"
+import * as log from "./logger"
 
-/**
- * Walk up from a starting directory to find the monorepo root (containing `turbo.json`),
- * then resolve `apps/docs` from there.
- */
-function resolveAppRoot(): string {
-	let dir = path.dirname(fileURLToPath(import.meta.url))
-	while (dir !== path.dirname(dir)) {
-		if (existsSync(path.join(dir, "turbo.json"))) {
-			return path.join(dir, "apps", "docs")
-		}
-		dir = path.dirname(dir)
-	}
-	throw new Error("Could not find monorepo root. Ensure turbo.json exists at the project root.")
+const VERSION = "0.2.0"
+
+/** Resolve the bundled app directory shipped inside the package */
+function resolveAppDir(): string {
+	const thisFile = fileURLToPath(import.meta.url)
+	return path.resolve(path.dirname(thisFile), "..", "app")
 }
 
-/** The `petit dev` command — starts a development server */
+/** Find the vite CLI entry point via require.resolve */
+function resolveViteBin(): string {
+	const req = createRequire(import.meta.url)
+	const vitePkg = req.resolve("vite/package.json")
+	const viteDir = path.dirname(vitePkg)
+	return path.join(viteDir, "bin", "vite.js")
+}
+
+/** The `petit dev` command -- starts a development server */
 export const devCommand = defineCommand({
 	meta: {
 		name: "dev",
@@ -38,129 +35,107 @@ export const devCommand = defineCommand({
 			description: "Path to config file",
 			required: false,
 		},
+		port: {
+			type: "string",
+			description: "Port to listen on",
+			required: false,
+		},
 	},
 	async run({ args }) {
-		const config = await loadConfig(args.config || undefined)
-		const sidebar = await scanSidebar(config)
+		const userCwd = process.cwd()
 
-		const docs: Record<string, PetitDataDocument> = {}
-		for (const category of sidebar) {
-			for (const entry of category.entries) {
-				const parsed = await parseDocument(entry.filePath)
-				docs[entry.slug] = {
-					html: parsed.html,
-					frontmatter: parsed.frontmatter,
-					headings: parsed.headings,
-				}
-			}
+		log.banner(VERSION)
+
+		// Find config file
+		let configPath: string | undefined
+		if (args.config) {
+			configPath = path.resolve(args.config)
+		} else {
+			configPath = findConfigFile(userCwd)
 		}
 
-		const data: PetitData = {
-			config: {
-				title: config.title,
-				defaultScheme: config.defaultScheme,
-				schemeSwitcher: config.schemeSwitcher,
-				theme: config.theme,
-				themeOverrides: config.themeOverrides,
+		if (!configPath) {
+			log.error("No petit.config.json found.")
+			log.info("Run 'npx @ephem-sh/petit init' to create one")
+			process.exit(1)
+		}
+
+		const appDir = resolveAppDir()
+		const port = await getPort({ port: args.port ? Number.parseInt(args.port, 10) : 4321 })
+
+		log.info(`config ${path.relative(userCwd, configPath)}`)
+
+		const viteBin = resolveViteBin()
+		const viteConfig = path.join(appDir, "vite.config.ts")
+
+		const child = spawn(process.execPath, [viteBin, "dev", "--port", String(port), "--config", viteConfig], {
+			cwd: appDir,
+			stdio: ["inherit", "pipe", "pipe"],
+			env: {
+				...process.env,
+				PETIT_CONFIG_PATH: configPath,
+				PETIT_USER_CWD: userCwd,
 			},
-			sidebar: sidebar.map(cat => ({
-				label: cat.label,
-				entries: cat.entries.map(e => ({
-					label: e.label,
-					slug: e.slug,
-					draft: e.draft,
-				})),
-			})),
-			docs,
-		}
+		})
 
-		const appRoot = resolveAppRoot()
-		await writeData(appRoot, data)
+		let docCount = 0
+		let serverReady = false
 
-		const totalEntries = sidebar.reduce(
-			(sum, category) => sum + category.entries.length,
-			0,
-		)
+		// Parse vite/plugin stdout, show our own output
+		child.stdout?.on("data", (data: Buffer) => {
+			const text = data.toString()
+			for (const line of text.split("\n")) {
+				const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim()
 
-		const port = await getPort({ port: 4321 })
-		console.log(`[petit] Loaded config: ${config.title}`)
-		console.log(`[petit] Found ${sidebar.length} categories, ${totalEntries} documents`)
-		console.log(`[petit] Starting dev server on http://localhost:${port}`)
+				// Capture doc count from plugin
+				if (clean.includes("[petit] Loaded")) {
+					const match = clean.match(/Loaded (\d+) document/)
+					if (match) docCount = Number.parseInt(match[1], 10)
+					continue
+				}
 
-		const child = spawn("npx", ["vite", "dev", "--port", String(port)], {
-			cwd: appRoot,
-			stdio: "inherit",
-			shell: process.platform === "win32",
+				// Skip vite banner lines
+				if (clean.includes("VITE v") || clean.includes("ready in") || clean.includes("Local:") || clean.includes("Network:")) {
+					// Detect server ready
+					if (clean.includes("Local:") && !serverReady) {
+						serverReady = true
+						log.ready(`http://localhost:${port}`, docCount)
+					}
+					continue
+				}
+
+				// Skip plugin internal messages
+				if (clean.startsWith("[petit]")) continue
+
+				// Skip empty lines and vite noise
+				if (!clean) continue
+				if (clean.includes("Re-optimizing dependencies")) continue
+
+				// Pass through everything else (HMR updates, errors, etc)
+				console.log(line)
+			}
+		})
+
+		// Show errors from stderr, filtering noise
+		child.stderr?.on("data", (data: Buffer) => {
+			const text = data.toString()
+			for (const line of text.split("\n")) {
+				const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim()
+				// Skip deprecation warnings
+				if (clean.includes("DeprecationWarning") || clean.includes("--trace-deprecation")) continue
+				if (!clean) continue
+				// Show real errors
+				process.stderr.write(line + "\n")
+			}
 		})
 
 		child.on("error", (err) => {
-			console.error(`[petit] Failed to start dev server: ${err.message}`)
+			log.error(`Failed to start dev server: ${err.message}`)
 			process.exit(1)
 		})
 
 		child.on("exit", (code) => {
 			process.exit(code ?? 0)
-		})
-
-		const watcher = watch(
-			[
-				path.join(config.docsRoot, "**/*.md"),
-				path.join(config.docsRoot, "**/*.mdx"),
-				config.configPath,
-			],
-			{
-				ignoreInitial: true,
-				awaitWriteFinish: { stabilityThreshold: 100 },
-			},
-		)
-
-		let rebuildTimeout: ReturnType<typeof setTimeout> | null = null
-
-		async function rebuild() {
-			try {
-				console.log("[petit] Change detected, rebuilding...")
-				const newConfig = await loadConfig(args.config || undefined)
-				const newSidebar = await scanSidebar(newConfig)
-				const newDocs: Record<string, PetitDataDocument> = {}
-				for (const category of newSidebar) {
-					for (const entry of category.entries) {
-						const parsed = await parseDocument(entry.filePath)
-						newDocs[entry.slug] = {
-							html: parsed.html,
-							frontmatter: parsed.frontmatter,
-							headings: parsed.headings,
-						}
-					}
-				}
-				const newData: PetitData = {
-					config: {
-						title: newConfig.title,
-						defaultScheme: newConfig.defaultScheme,
-						schemeSwitcher: newConfig.schemeSwitcher,
-						theme: newConfig.theme,
-						themeOverrides: newConfig.themeOverrides,
-					},
-					sidebar: newSidebar.map(cat => ({
-						label: cat.label,
-						entries: cat.entries.map(e => ({
-							label: e.label,
-							slug: e.slug,
-							draft: e.draft,
-						})),
-					})),
-					docs: newDocs,
-				}
-				await writeData(appRoot, newData)
-				const total = newSidebar.reduce((s, c) => s + c.entries.length, 0)
-				console.log(`[petit] Rebuilt ${total} documents`)
-			} catch (err) {
-				console.error("[petit] Rebuild failed:", err)
-			}
-		}
-
-		watcher.on("all", () => {
-			if (rebuildTimeout) clearTimeout(rebuildTimeout)
-			rebuildTimeout = setTimeout(rebuild, 300)
 		})
 	},
 })

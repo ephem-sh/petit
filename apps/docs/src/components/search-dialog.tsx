@@ -10,11 +10,11 @@ import {
 } from "@workspace/ui/components/command"
 import { FileText, Hash, Moon, Sun, Link, GithubLogo, ArrowRight } from "@phosphor-icons/react"
 import { create, load, search as oramaSearch } from "@orama/orama"
-import type { AnyOrama } from "@orama/orama"
-import { searchIndex } from "@/.petit/search"
+import type { AnyOrama, RawData } from "@orama/orama"
+import { searchIndex } from "virtual:petit/search"
 import { useTheme } from "@/components/theme-provider"
-import { sidebar } from "@/.petit/sidebar"
-import { config } from "@/.petit/config"
+import { sidebar } from "virtual:petit/sidebar"
+import { config } from "virtual:petit/config"
 
 /** Props for the SearchDialog component */
 interface SearchDialogProps {
@@ -101,7 +101,7 @@ function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 	useEffect(() => {
 		if (!searchIndex || dbRef.current) return
 		const instance = create({ schema: searchSchema })
-		load(instance as AnyOrama, searchIndex)
+		load(instance as AnyOrama, searchIndex as RawData)
 		dbRef.current = instance
 	}, [])
 

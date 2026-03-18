@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { cn } from "@workspace/ui/lib/utils"
-import { themes } from "@/.petit/themes"
+import { themes } from "virtual:petit/themes"
 
 /** Props for the ContentRenderer component */
 interface ContentRendererProps {
@@ -160,7 +160,6 @@ function hydrateAccordions(container: HTMLElement): void {
 	for (const details of items) {
 		const content = details.querySelector<HTMLElement>(".petit-accordion-content")
 		const trigger = details.querySelector<HTMLElement>(".petit-accordion-trigger")
-		const icon = trigger?.querySelector<HTMLElement>(":scope::after") ? null : trigger // ::after can't be animated directly
 		if (!content || !trigger) continue
 
 		let isAnimating = false
