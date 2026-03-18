@@ -1,7 +1,7 @@
 ---
 title: Media
 description: Images, logos, favicons, and media files
-order: 6
+order: 7
 ---
 
 Petit serves media files from a directory relative to your

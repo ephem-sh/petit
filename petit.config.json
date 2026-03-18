@@ -10,7 +10,7 @@
 	"maxWidth": "lg",
 	"sidebarPosition": "center",
 	"toc": true,
-	"deploy": "vercel",
+	"deploy": "cloudflare",
 	"sidebar": [
 		{ "label": "Getting Started", "path": "./docs/getting-started" },
 		{ "label": "Components", "path": "./docs/components" },

@@ -1,7 +1,7 @@
 ---
 title: Architecture
 description: How Petit works under the hood
-order: 3
+order: 4
 ---
 
 Petit is a static documentation generator built on Vite and

@@ -1,12 +1,12 @@
 ---
-title: SEO and AI discoverability
-description: Search engine optimization and LLM-friendly documentation
+title: Programmatic SEO
+description: Automatic search engine optimization for your documentation
 order: 2
 ---
 
-Petit generates comprehensive SEO metadata, Open Graph images, and
-AI-friendly endpoints automatically. All of these features activate
-when you set `siteUrl` in your configuration file.
+Petit generates comprehensive SEO metadata and Open Graph images
+automatically. All SEO features activate when you set `siteUrl`
+in your configuration file.
 
 ## Setup
 
@@ -15,15 +15,14 @@ your site's production URL:
 
 ```json
 {
-  "title": "My Project",
-  "siteUrl": "https://docs.example.com",
-  "sidebar": [...]
+	"title": "My Project",
+	"siteUrl": "https://docs.example.com",
+	"sidebar": [...]
 }
 ```
 
 Once `siteUrl` is set, Petit generates canonical URLs, OG images,
-a sitemap, robots.txt, and LLM-friendly endpoints for every page
-in your documentation.
+a sitemap, and robots.txt for every page in your documentation.
 
 ## Meta tags
 
@@ -80,12 +79,12 @@ every non-draft documentation page in standard XML sitemap format:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://docs.example.com</loc>
-  </url>
-  <url>
-    <loc>https://docs.example.com/getting-started</loc>
-  </url>
+	<url>
+		<loc>https://docs.example.com</loc>
+	</url>
+	<url>
+		<loc>https://docs.example.com/getting-started</loc>
+	</url>
 </urlset>
 ```
 
@@ -100,55 +99,3 @@ Allow: /
 
 Sitemap: https://docs.example.com/sitemap.xml
 ```
-
-## LLM and AI agent support
-
-Petit makes your documentation directly consumable by large
-language models and AI agents through several machine-readable
-endpoints.
-
-### llms.txt
-
-A machine-readable index of all documentation pages, served at
-`/llms.txt`. It lists every non-draft page with a link to its
-individual markdown file:
-
-```
-# My Project
-
-> My Project documentation
-
-This file lists all documentation pages for My Project.
-For the full documentation in a single file,
-see: https://docs.example.com/llms-full.md
-
-## Docs
-
-- [Overview](https://docs.example.com/getting-started/overview.md)
-- [Configuration](https://docs.example.com/getting-started/configuration.md)
-```
-
-### llms-full.md
-
-All documentation concatenated in sidebar order into a single
-markdown file, served at `/llms-full.md`. This is useful for
-feeding an entire documentation site into an LLM context window.
-
-Petit also adds an alternate link tag in the HTML head of every
-page, pointing browsers and crawlers to this file:
-
-```html
-<link rel="alternate" type="text/markdown"
-      href="/llms-full.md" />
-```
-
-### Individual markdown endpoints
-
-Every documentation page is available as raw markdown at
-`/{slug}.md`. For example, `https://docs.example.com/getting-started/overview.md`
-serves the raw markdown for the overview page, prefixed with
-the page title and description as a heading and blockquote.
-
-All LLM endpoints work in both dev and production. In dev mode,
-they're served from memory via Vite middleware. In production,
-they're generated as static files.

@@ -1,7 +1,7 @@
 ---
 title: Routing and navigation
 description: How Petit generates URLs and builds the sidebar
-order: 4
+order: 5
 ---
 
 Petit generates your site's URL structure and sidebar navigation
