@@ -21,12 +21,12 @@
     "dist"
   ],
   "bin": {
-    "petit": "./dist/cli/index.mjs"
+    "petit": "./dist/cli/index.js"
   },
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.mts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {

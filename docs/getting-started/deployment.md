@@ -11,31 +11,32 @@ Run the build command and deploy the output directory.
 @ephem-sh/petit build
 ```
 
+The output goes to `.output/public` in your project root.
+
 ## Vercel
 
 Import your repository in the Vercel dashboard. Set the build
 command to `npx @ephem-sh/petit build` and the output directory
-to `apps/docs/.output/public`. Deploys automatically on push.
+to `.output/public`. Deploys automatically on push.
 
 ## Cloudflare Pages
 
-Create a project in the Cloudflare Pages dashboard and link your
-repository. Set the build command to `npx @ephem-sh/petit build`
-and the output directory to `apps/docs/.output/public`. Deploys
-on every push.
+Create a Pages project in the Cloudflare dashboard and connect
+your repository. Set the build command to `npx @ephem-sh/petit build`
+and the output directory to `.output/public`. Deploys on every push.
 
 ## Netlify
 
 Add your repository in the Netlify dashboard. Set the build
 command to `npx @ephem-sh/petit build` and the publish directory
-to `apps/docs/.output/public`. Deploys on every push.
+to `.output/public`. Deploys on every push.
 
 ## Static server
 
 After building, serve the output with any static file server:
 
 ```bash
-npx serve apps/docs/.output/public
+npx serve .output/public
 ```
 
 ## SEO in production
@@ -49,14 +50,14 @@ endpoints), set `siteUrl` in your config before building:
 }
 ```
 
-See the [SEO reference](/reference/seo) for details on what gets
+See the [SEO reference](/docs/reference/seo) for details on what gets
 generated.
 
 ## Image optimization
 
 Petit converts PNG and JPG images to WebP at build time and
 generates responsive sizes (640px, 1024px, 1920px). This runs
-automatically during `npx @ephem-sh/petit build` if sharp is installed.
+automatically during build if sharp is installed.
 
 ## Offline support
 
