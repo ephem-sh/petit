@@ -177,6 +177,44 @@ to `.vercel/output/` which Vercel picks up automatically.
 
 No `package.json` or `node_modules` needed in your project root.
 
+## Railway
+
+Railway provides instant deployments with zero configuration
+files. The default `node` deploy target works with Railway's
+Railpack builder. Set the deploy target in your config:
+
+```json petit.config.json
+{
+  "title": "My Docs",
+  "deploy": "node",
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+Connect your repository in the Railway dashboard and configure
+the service settings:
+
+```type-table
+# Service settings
+Build command | string | npx @ephem-sh/petit@latest build | Scaffolds .petit/ workspace, installs deps, runs vite build
+Start command | string | node .petit/.output/server/index.mjs | Starts the Nitro server (reads PORT from Railway automatically)
+```
+
+Add this variable under **Variables** in your service settings:
+
+```type-table
+# Environment variables
+RAILPACK_INSTALL_CMD | string | mkdir -p node_modules | Skips Railpack's auto-install step (Petit handles its own deps)
+```
+
+Nitro reads Railway's `PORT` environment variable automatically.
+No additional configuration is needed.
+
+> **Note:** If your repository has a `package.json` with an
+> `engines` field, set it to Node 24 or higher. If you don't
+> have a `package.json`, set the `RAILPACK_NODE_VERSION`
+> environment variable to `24` in your Railway service settings.
+
 ## Node.js and Docker
 
 The default `node` target works for any Node.js server or Docker
@@ -196,12 +234,12 @@ served from `.petit/.output/public`.
 For Docker, use a multi-stage build:
 
 ```dockerfile Dockerfile
-FROM node:20-slim AS build
+FROM node:24-slim AS build
 WORKDIR /app
 COPY . .
 RUN npx @ephem-sh/petit build
 
-FROM node:20-slim
+FROM node:24-slim
 WORKDIR /app
 COPY --from=build /app/.petit/.output .output
 CMD ["node", ".output/server/index.mjs"]
