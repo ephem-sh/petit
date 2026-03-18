@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9 (2026-03-18)
+
+- docs: update vercel deployment guide, split seo and llms references
+
+
 ## 0.1.8 (2026-03-18)
 
 - fix: update media path for published template
