@@ -1,6 +1,7 @@
-  [build]
-    command = "npx @ephem-sh/petit@latest build"
+[build]
+  base = ".netlify-skip/"
+  command = "cd .. && npx @ephem-sh/petit@latest build"
+  publish = "../.petit/.netlify/"
 
-  [build.environment]
-    NODE_OPTIONS = "--max-old-space-size=4096"
-    NPM_FLAGS = "--prefix=/dev/null"
+[build.environment]
+  NODE_OPTIONS = "--max-old-space-size=4096"
