@@ -1,7 +1,7 @@
 [build]
   base = ".netlify-skip/"
-  command = "cd .. && npx @ephem-sh/petit@latest build"
-  publish = "../.petit/.netlify/"
+  command = "cd .. && npx @ephem-sh/petit@latest build && cp -r .petit/.netlify .netlify-skip/.netlify"
+  publish = ".netlify/publish/"
 
 [build.environment]
   NODE_OPTIONS = "--max-old-space-size=4096"
