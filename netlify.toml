@@ -1,6 +1,6 @@
 [build]
   base = ".netlify-skip/"
-  command = "cd .. && npx @ephem-sh/petit@latest build && cp -r .petit/.netlify .netlify-skip/.netlify && cp -r .petit/dist .netlify-skip/dist && ls -la .netlify-skip/.netlify/v1/functions/"
+  command = "cd .. && npx @ephem-sh/petit@latest build && echo '=== .petit contents ===' && ls -la .petit/.netlify/v1/functions/ && echo '=== copying ===' && find .petit/.netlify -type f"
   publish = "dist/client/"
 
 [build.environment]
