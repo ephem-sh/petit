@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { watch } from "chokidar"
 import type { Plugin } from "vite"
 import { findConfigFile, loadConfig } from "../config/loader"
 import { scanSidebar } from "../sidebar/scanner"
@@ -531,13 +532,18 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				next()
 			})
 
-			// Watch docs directory and config file for changes
-			server.watcher.add(docsRoot)
-			server.watcher.add(configPath)
+			// Watch docs directory and config file for changes.
+			// Use an independent chokidar watcher instead of server.watcher
+			// because when petit runs via npx/bunx, the Vite root is in a
+			// temp directory and server.watcher silently ignores paths outside it.
+			const watcher = watch([docsRoot, configPath], {
+				ignoreInitial: true,
+				ignored: /(^|[\/\\])\../, // ignore dotfiles
+			})
 
 			let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-			server.watcher.on("all", (_event: string, filePath: string) => {
+			watcher.on("all", (_event: string, filePath: string) => {
 				if (!filePath) return
 				const norm = path.normalize(filePath)
 				const ext = path.extname(norm)
@@ -569,6 +575,11 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 						console.error("[petit] Rebuild failed:", err)
 					}
 				}, 300)
+			})
+
+			// Clean up watcher when server closes
+			server.httpServer?.on("close", () => {
+				watcher.close()
 			})
 		},
 	}
