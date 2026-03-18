@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.11 (2026-03-18)
+
+- feat: add netlify flag support
+- chore: test netlify mv instead cp
+- chore: extended logs for netlify
+- chore: try diff command pattern
+- chore: debug netlify output
+- chore: add log to netlify command
+- fix: add functions to netlify command
+- fix: try diff path for netlify command
+- fix: change command logic for netlify
+- fix: change netlify build output
+- chore: setup netlify to skip install
+- chore: add netlify config
+- docs: update cloudflare deployment section
+
+
 ## 0.1.10 (2026-03-18)
 
 - chore: clean up build logs
