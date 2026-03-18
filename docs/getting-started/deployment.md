@@ -96,8 +96,9 @@ cd .petit && npx wrangler login && npx wrangler deploy
 
 ## Netlify
 
-Netlify provides continuous deployment with automatic builds on
-every push. Set the deploy target:
+Netlify deploys via the `@netlify/vite-plugin-tanstack-start`
+plugin, which Petit installs automatically during the build.
+Set the deploy target in your config:
 
 ```json petit.config.json
 {
@@ -107,16 +108,44 @@ every push. Set the deploy target:
 }
 ```
 
-```command live
-@ephem-sh/petit build
+Netlify requires two files in your repository to bypass its
+automatic dependency installation, which fails on monorepos
+and projects without a lockfile.
+
+### Repository setup
+
+Add these two files to your repository root:
+
+1. Create a `netlify.toml` file:
+
+```toml netlify.toml
+[build]
+  base = ".netlify-skip/"
+  command = "cd .. && npx @ephem-sh/petit@latest build --netlify"
+  publish = "dist/client/"
+
+[build.environment]
+  NODE_OPTIONS = "--max-old-space-size=4096"
 ```
 
-Petit installs `@netlify/vite-plugin-tanstack-start` automatically
-during the build.
+2. Create a a empty `.netlify-skip` folder in your root and place a package.json inside it `.netlify-skip/package.json` file:
 
-Connect your repository in the Netlify dashboard. Set the build
-command to `npx @ephem-sh/petit build`. Netlify detects the
-output directory automatically.
+```json .netlify-skip/package.json
+{"private":true}
+```
+
+The `base` directory points Netlify's install step at the
+empty `.netlify-skip/` folder, which finishes instantly. The
+build command changes back to the repository root and runs
+Petit with the `--netlify` flag, which moves the SSR function,
+static assets, and dependencies into the correct locations
+after the build completes.
+
+### Dashboard configuration
+
+Import your repository in the Netlify dashboard. The
+`netlify.toml` file configures everything automatically.
+No dashboard overrides are needed.
 
 ## Vercel
 
