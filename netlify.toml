@@ -1,19 +1,6 @@
 [build]
   base = ".netlify-skip/"
-  command = """cd .. && \
-npx @ephem-sh/petit@latest build && \
-echo '=== MOVING OUTPUT TO BASE ===' && \
-rm -rf .netlify-skip/.netlify .netlify-skip/dist .netlify-skip/node_modules && \
-mv .petit/.netlify .netlify-skip/.netlify && \
-mv .petit/dist .netlify-skip/dist && \
-mv .petit/node_modules .netlify-skip/node_modules && \
-echo '=== VERIFY ===' && \
-ls -la .netlify-skip/ && \
-echo '--- functions ---' && ls -la .netlify-skip/.netlify/v1/functions/ && \
-echo '--- server ---' && ls -la .netlify-skip/dist/server/server.js && \
-echo '--- node_modules count ---' && ls .netlify-skip/node_modules/ | wc -l && \
-echo '--- react ---' && ls .netlify-skip/node_modules/react/package.json && \
-echo '=== DONE ==='"""
+  command = "cd .. && npx @ephem-sh/petit@latest build --netlify"
   publish = "dist/client/"
 
 [build.environment]

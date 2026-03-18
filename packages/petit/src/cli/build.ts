@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync, rmSync, renameSync } from "node:fs"
 import path from "node:path"
 import { createRequire } from "node:module"
 import { spawn } from "node:child_process"
@@ -27,6 +27,11 @@ export const buildCommand = defineCommand({
 		config: {
 			type: "string",
 			description: "Path to config file",
+			required: false,
+		},
+		netlify: {
+			type: "boolean",
+			description: "Move build output for Netlify deployment",
 			required: false,
 		},
 	},
@@ -221,6 +226,17 @@ export const buildCommand = defineCommand({
 
 		child.on("exit", (code) => {
 			if (code === 0) {
+				if (args.netlify) {
+					const baseDir = path.join(userCwd, ".netlify-skip")
+					for (const dir of [".netlify", "dist", "node_modules"]) {
+						const target = path.join(baseDir, dir)
+						if (existsSync(target)) rmSync(target, { recursive: true, force: true })
+					}
+					renameSync(path.join(petitDir, ".netlify"), path.join(baseDir, ".netlify"))
+					renameSync(path.join(petitDir, "dist"), path.join(baseDir, "dist"))
+					renameSync(path.join(petitDir, "node_modules"), path.join(baseDir, "node_modules"))
+					log.success("moved output to .netlify-skip/")
+				}
 				const elapsed = ((performance.now() - startTime) / 1000).toFixed(1)
 				log.buildDone(path.join(".petit", ".output", "public"), `${elapsed}s`)
 			} else {
