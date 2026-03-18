@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 (2026-03-18)
+
+- feat: bundle web app inside @ephem-sh/petit for standalone usage
+
+
 ## 0.1.3 (2026-03-17)
 
 - fix: correct package.json paths in petit package
