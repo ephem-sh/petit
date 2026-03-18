@@ -2,27 +2,18 @@
   base = ".netlify-skip/"
   command = """cd .. && \
 npx @ephem-sh/petit@latest build && \
-echo '=== PETIT BUILD DONE ===' && \
-echo '--- .petit/ top-level ---' && ls -la .petit/ && \
-echo '--- .petit/dist/ ---' && ls -la .petit/dist/ && \
-echo '--- .petit/dist/server/ ---' && ls -la .petit/dist/server/ && \
-echo '--- .petit/.netlify/v1/functions/ ---' && ls -la .petit/.netlify/v1/functions/ && \
-echo '--- server.mjs content ---' && cat .petit/.netlify/v1/functions/server.mjs && \
-echo '--- server.js size ---' && wc -c .petit/dist/server/server.js && \
-echo '--- .petit/node_modules size ---' && du -sh .petit/node_modules/ && \
-echo '=== COPYING TO BASE ===' && \
-mkdir -p .netlify-skip/.netlify/v1/functions && \
-cp .petit/.netlify/v1/functions/server.mjs .netlify-skip/.netlify/v1/functions/server.mjs && \
-cp -r .petit/dist .netlify-skip/dist && \
-cp -r .petit/node_modules .netlify-skip/node_modules && \
-echo '=== VERIFY BASE STRUCTURE ===' && \
-echo '--- .netlify-skip/ top-level ---' && ls -la .netlify-skip/ && \
-echo '--- .netlify-skip/.netlify/v1/functions/ ---' && ls -la .netlify-skip/.netlify/v1/functions/ && \
-echo '--- .netlify-skip/dist/server/ ---' && ls -la .netlify-skip/dist/server/ && \
-echo '--- .netlify-skip/dist/client/ (first 10) ---' && ls .netlify-skip/dist/client/ | head -10 && \
-echo '--- .netlify-skip/node_modules/ (first 20 dirs) ---' && ls .netlify-skip/node_modules/ | head -20 && \
-echo '--- relative path test: from functions to server.js ---' && ls .netlify-skip/dist/server/server.js && \
-echo '=== ALL DONE ==='"""
+echo '=== MOVING OUTPUT TO BASE ===' && \
+rm -rf .netlify-skip/.netlify .netlify-skip/dist .netlify-skip/node_modules && \
+mv .petit/.netlify .netlify-skip/.netlify && \
+mv .petit/dist .netlify-skip/dist && \
+mv .petit/node_modules .netlify-skip/node_modules && \
+echo '=== VERIFY ===' && \
+ls -la .netlify-skip/ && \
+echo '--- functions ---' && ls -la .netlify-skip/.netlify/v1/functions/ && \
+echo '--- server ---' && ls -la .netlify-skip/dist/server/server.js && \
+echo '--- node_modules count ---' && ls .netlify-skip/node_modules/ | wc -l && \
+echo '--- react ---' && ls .netlify-skip/node_modules/react/package.json && \
+echo '=== DONE ==='"""
   publish = "dist/client/"
 
 [build.environment]
