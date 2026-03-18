@@ -86,5 +86,6 @@ export async function loadConfig(configPath?: string): Promise<ResolvedConfig> {
 		repository: parsed.repository,
 		branch: parsed.branch ?? "main",
 		siteUrl: parsed.siteUrl,
+		deploy: parsed.deploy ?? "node",
 	}
 }

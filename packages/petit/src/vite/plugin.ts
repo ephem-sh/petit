@@ -80,7 +80,7 @@ interface PetitState {
 }
 
 /** Load config, scan sidebar, and parse all documents into memory */
-async function buildState(configPath: string, useCache = true): Promise<PetitState> {
+async function buildState(configPath: string, useCache = true, userCwd?: string): Promise<PetitState> {
 	const config = await loadConfig(configPath)
 	const theme = getTheme(config.theme)
 	const sidebar = await scanSidebar(config)
@@ -89,7 +89,7 @@ async function buildState(configPath: string, useCache = true): Promise<PetitSta
 	const cache = useCache ? loadCache(cacheKey) : {}
 
 	// Find repo root to compute repo-relative file paths
-	const repoRoot = findRepoRoot(config.docsRoot)
+	const repoRoot = findRepoRoot(userCwd ?? config.docsRoot)
 	if (!repoRoot && config.repository) {
 		console.warn("[petit] Could not detect repo root for GitHub links. Initialize git or add a .gitignore at your project root.")
 	}
@@ -324,7 +324,8 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 			console.log("[petit] Found config:", configPath)
 
 			try {
-				state = await buildState(configPath, !isDev)
+				const effectiveUserCwd = options.userCwd || process.env.PETIT_USER_CWD
+				state = await buildState(configPath, !isDev, effectiveUserCwd)
 				searchIndexSerialized = await computeSearchIndex(state)
 				console.log(`[petit] Loaded ${Object.keys(state.docs).length} documents`)
 			} catch (err) {
@@ -536,7 +537,8 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				debounceTimer = setTimeout(async () => {
 					try {
 						console.log("[petit] Change detected, rebuilding...")
-						state = await buildState(configPath!, false)
+						const effectiveUserCwd = options.userCwd || process.env.PETIT_USER_CWD
+						state = await buildState(configPath!, false, effectiveUserCwd)
 						searchIndexSerialized = await computeSearchIndex(state)
 
 						const virtualModules = ["config", "sidebar", "docs", "error", "search", "themes", "theme.css"]

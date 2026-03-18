@@ -40,4 +40,5 @@ export const petitConfigSchema = z.object({
 	repository: z.string().optional(),
 	branch: z.string().optional(),
 	siteUrl: z.string().url().optional(),
+	deploy: z.enum(["node", "cloudflare", "netlify", "vercel", "bun"]).optional(),
 })

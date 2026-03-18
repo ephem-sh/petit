@@ -162,7 +162,19 @@ export default defineConfig({
 		)
 		writeFileSync(globalsCss, css, "utf-8")
 
-		// 6. Write vite.config.ts for the bundled app
+		// 6. Copy vite config templates to dist/vite-configs/
+		const viteConfigsSrc = resolve("src/vite-configs")
+		const viteConfigsDest = resolve("dist/vite-configs")
+		mkdirSync(viteConfigsDest, { recursive: true })
+		cpSync(viteConfigsSrc, viteConfigsDest, { recursive: true })
+
+		// 7. Copy platform templates to dist/platforms/
+		const platformsSrc = resolve("src/platforms")
+		const platformsDest = resolve("dist/platforms")
+		mkdirSync(platformsDest, { recursive: true })
+		cpSync(platformsSrc, platformsDest, { recursive: true })
+
+		// 8. Write vite.config.ts for dev mode (petit dev runs from dist/app/)
 		writeFileSync(
 			join(appDest, "vite.config.ts"),
 			`import path from "node:path"
@@ -176,19 +188,13 @@ import { petitPlugin } from "../vite/plugin.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const config = defineConfig({
+export default defineConfig({
   plugins: [
     petitPlugin({
       configPath: process.env.PETIT_CONFIG_PATH,
       userCwd: process.env.PETIT_USER_CWD,
     }),
-    nitro({
-      output: {
-        dir: process.env.PETIT_USER_CWD
-          ? path.resolve(process.env.PETIT_USER_CWD, ".output")
-          : undefined,
-      },
-    }),
+    nitro(),
     tailwindcss(),
     tanstackStart({ srcDirectory: "." }),
     viteReact(),
@@ -199,13 +205,11 @@ const config = defineConfig({
     },
   },
 })
-
-export default config
 `,
 			"utf-8",
 		)
 
-		// 7. Write tsconfig.json for the bundled app
+		// 9. Write tsconfig.json for the bundled app
 		writeFileSync(
 			join(appDest, "tsconfig.json"),
 			JSON.stringify(
@@ -236,7 +240,7 @@ export default config
 			"utf-8",
 		)
 
-		// 8. Write type declarations for virtual modules (as .ts to survive DTS clean)
+		// 10. Write type declarations for virtual modules (as .ts to survive DTS clean)
 		writeFileSync(
 			join(appDest, "petit-env.ts"),
 			`/* eslint-disable */

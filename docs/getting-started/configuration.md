@@ -18,6 +18,7 @@ Here is a config file using every available option:
   "repository": "https://github.com/user/repo",
   "branch": "main",
   "siteUrl": "https://docs.example.com",
+  "deploy": "node",
   "defaultScheme": "dark",
   "schemeSwitcher": true,
   "theme": "default",
@@ -48,6 +49,7 @@ mediaDir | string | auto | Path to media/images directory, relative to config
 repository | string | - | GitHub URL, adds "Edit on GitHub" links
 branch | string | "main" | Git branch for "Edit on GitHub" links
 siteUrl | string | - | Production URL, enables SEO (sitemap, OG images, llms.txt)
+deploy | "node" \| "cloudflare" \| "netlify" \| "vercel" \| "bun" | "node" | Deploy target platform (see deployment guide)
 defaultScheme | "dark" \| "light" \| "system" | "system" | Color scheme on first visit
 schemeSwitcher | boolean | true | Show the light/dark toggle
 theme | string | "default" | Theme preset for colors and fonts

@@ -62,10 +62,12 @@ export interface PetitConfig {
 	branch?: string
 	/** Base URL for the site (used for canonical URLs, OG images, sitemap) */
 	siteUrl?: string
+	/** Deploy target platform (default: "node") */
+	deploy?: "node" | "cloudflare" | "netlify" | "vercel" | "bun"
 }
 
 /** Resolved config with all defaults applied */
-export interface ResolvedConfig extends Required<Omit<PetitConfig, "theme" | "themeOverrides" | "sidebar" | "logo" | "maxWidth" | "sidebarPosition" | "repository" | "branch" | "siteUrl" | "fonts" | "mediaDir">> {
+export interface ResolvedConfig extends Required<Omit<PetitConfig, "theme" | "themeOverrides" | "sidebar" | "logo" | "maxWidth" | "sidebarPosition" | "repository" | "branch" | "siteUrl" | "fonts" | "mediaDir" | "deploy">> {
 	/** Custom font overrides */
 	fonts?: {
 		sans?: string
@@ -95,4 +97,6 @@ export interface ResolvedConfig extends Required<Omit<PetitConfig, "theme" | "th
 	logoPath?: string
 	/** Absolute path to media directory */
 	mediaRoot: string
+	/** Deploy target platform */
+	deploy: "node" | "cloudflare" | "netlify" | "vercel" | "bun"
 }

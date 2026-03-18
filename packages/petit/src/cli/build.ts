@@ -1,7 +1,6 @@
-import { existsSync, mkdirSync, writeFileSync, cpSync, rmSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { createRequire } from "node:module"
-import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
 import { defineCommand } from "citty"
 import { loadConfig } from "../config/loader"
@@ -13,23 +12,10 @@ import { optimizeImages } from "../media/optimize"
 import { generateSitemap, generateRobots, generateLlmsTxt, generateLlmsFullMd, writeMarkdownFiles } from "../seo/index"
 import { getTheme } from "../themes"
 import type { SearchDocument } from "../search/types"
+import { scaffoldPetitApp } from "./scaffold"
 import * as log from "./logger"
 
 const VERSION = createRequire(import.meta.url)("../../package.json").version as string
-
-/** Resolve the bundled app directory shipped inside the package */
-function resolveAppDir(): string {
-	const thisFile = fileURLToPath(import.meta.url)
-	return path.resolve(path.dirname(thisFile), "..", "app")
-}
-
-/** Find the vite CLI entry point via require.resolve */
-function resolveViteBin(): string {
-	const req = createRequire(import.meta.url)
-	const vitePkg = req.resolve("vite/package.json")
-	const viteDir = path.dirname(vitePkg)
-	return path.join(viteDir, "bin", "vite.js")
-}
 
 /** The `petit build` command -- builds static documentation */
 export const buildCommand = defineCommand({
@@ -41,11 +27,6 @@ export const buildCommand = defineCommand({
 		config: {
 			type: "string",
 			description: "Path to config file",
-			required: false,
-		},
-		outDir: {
-			type: "string",
-			description: "Output directory (default: .output)",
 			required: false,
 		},
 	},
@@ -98,20 +79,20 @@ export const buildCommand = defineCommand({
 		await buildSearchIndex(searchDocs)
 		log.success("markdown parsed, search index built")
 
-		// Output directory for static assets (SEO files, OG images)
-		const outputDir = path.resolve(userCwd, args.outDir ?? ".output", "public")
-		if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true })
+		const petitDir = await scaffoldPetitApp({ userCwd, config })
 
-		// Generate SEO assets
+		const publicDir = path.join(petitDir, "public")
+		if (!existsSync(publicDir)) mkdirSync(publicDir, { recursive: true })
+
 		if (config.siteUrl) {
 			const sitemapXml = generateSitemap(sidebar, config.siteUrl)
-			writeFileSync(path.join(outputDir, "sitemap.xml"), sitemapXml, "utf-8")
+			writeFileSync(path.join(publicDir, "sitemap.xml"), sitemapXml, "utf-8")
 
 			const robotsTxt = generateRobots(config.siteUrl)
-			writeFileSync(path.join(outputDir, "robots.txt"), robotsTxt, "utf-8")
+			writeFileSync(path.join(publicDir, "robots.txt"), robotsTxt, "utf-8")
 
 			const llmsTxt = generateLlmsTxt(sidebar, config.siteUrl, config.title)
-			writeFileSync(path.join(outputDir, "llms.txt"), llmsTxt, "utf-8")
+			writeFileSync(path.join(publicDir, "llms.txt"), llmsTxt, "utf-8")
 
 			const docsWithRaw: Record<string, { raw: string; frontmatter: { title?: string; description?: string } }> = {}
 			for (const category of sidebar) {
@@ -125,12 +106,11 @@ export const buildCommand = defineCommand({
 			}
 
 			const llmsFullMd = generateLlmsFullMd(sidebar, docsWithRaw, config.title)
-			writeFileSync(path.join(outputDir, "llms-full.md"), llmsFullMd, "utf-8")
+			writeFileSync(path.join(publicDir, "llms-full.md"), llmsFullMd, "utf-8")
 
-			writeMarkdownFiles(sidebar, docsWithRaw, outputDir)
+			writeMarkdownFiles(sidebar, docsWithRaw, publicDir)
 			log.success("SEO assets generated")
 
-			// Generate OG images
 			try {
 				await generateOgImages({
 					sidebar,
@@ -140,7 +120,7 @@ export const buildCommand = defineCommand({
 						),
 					) as Record<string, { frontmatter: { title?: string; description?: string } }>,
 					siteName: config.title,
-					outDir: outputDir,
+					outDir: publicDir,
 					bgColor: theme.dark.background,
 					fgColor: theme.dark.foreground,
 					mutedColor: theme.dark["muted-foreground"],
@@ -151,31 +131,26 @@ export const buildCommand = defineCommand({
 			}
 		}
 
-		// Optimize media images
 		try {
-			await optimizeImages(config.mediaRoot, outputDir)
+			await optimizeImages(config.mediaRoot, publicDir)
 			log.success("images optimized")
 		} catch (err) {
 			log.warn(`image optimization skipped: ${err instanceof Error ? err.message : String(err)}`)
 		}
 
-		// Build with vite
-		const appDir = resolveAppDir()
+		log.info(`deploy target: ${config.deploy}`)
 
-		const viteBin = resolveViteBin()
-		const viteConfig = path.join(appDir, "vite.config.ts")
+		const viteBin = path.join(petitDir, "node_modules", "vite", "bin", "vite.js")
 
-		const child = spawn(process.execPath, [viteBin, "build", "--config", viteConfig], {
-			cwd: appDir,
+		const child = spawn(process.execPath, [viteBin, "build"], {
+			cwd: petitDir,
 			stdio: ["inherit", "pipe", "pipe"],
 			env: {
 				...process.env,
-				PETIT_CONFIG_PATH: config.configPath,
 				PETIT_USER_CWD: userCwd,
 			},
 		})
 
-		// Capture vite build output, suppress noise
 		child.stdout?.on("data", (data: Buffer) => {
 			const text = data.toString()
 			for (const line of text.split("\n")) {
@@ -205,7 +180,6 @@ export const buildCommand = defineCommand({
 				if (clean.includes("manualChunks")) continue
 				if (clean.includes("chunkSizeWarningLimit")) continue
 				if (clean.includes("imported from external module")) continue
-				// Pass through anything unexpected
 				console.log(line)
 			}
 		})
@@ -239,18 +213,8 @@ export const buildCommand = defineCommand({
 
 		child.on("exit", (code) => {
 			if (code === 0) {
-				// Nitro may output to appDir/.output instead of userCwd/.output
-				// Move it to the expected location if needed
-				const expectedOutput = path.resolve(userCwd, args.outDir ?? ".output")
-				const appOutput = path.join(appDir, ".output")
-				if (!existsSync(expectedOutput) && existsSync(appOutput)) {
-					cpSync(appOutput, expectedOutput, { recursive: true })
-					rmSync(appOutput, { recursive: true, force: true })
-				}
-
 				const elapsed = ((performance.now() - startTime) / 1000).toFixed(1)
-				const relOut = path.relative(userCwd, path.join(expectedOutput, "public"))
-				log.buildDone(relOut, `${elapsed}s`)
+				log.buildDone(path.join(".petit", ".output", "public"), `${elapsed}s`)
 			} else {
 				log.error("Build failed")
 			}
