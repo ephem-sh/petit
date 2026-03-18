@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import type { Plugin } from "vite"
 import { findConfigFile, loadConfig } from "../config/loader"
 import { scanSidebar } from "../sidebar/scanner"
@@ -205,6 +206,18 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 	return {
 		name: "petit",
 		enforce: "pre",
+
+		config() {
+			const thisFile = fileURLToPath(import.meta.url)
+			let dir = path.dirname(thisFile)
+			while (dir !== path.dirname(dir)) {
+				if (path.basename(dir) === "node_modules") {
+					return { server: { fs: { allow: [dir] } } }
+				}
+				dir = path.dirname(dir)
+			}
+			return { server: { fs: { allow: [path.dirname(thisFile)] } } }
+		},
 
 		resolveId(id) {
 			if (id.startsWith("virtual:petit/")) {
