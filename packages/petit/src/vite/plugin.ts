@@ -15,6 +15,17 @@ import { buildSearchIndex, stripHtml } from "../search/indexer"
 import type { SerializedSearchIndex } from "../search/types"
 import { loadCache, saveCache, isCached, getCached, setCached } from "../cache/index"
 
+/** Profiling timer - only logs when PETIT_PROFILING env is set */
+const profiling = process.env.PETIT_PROFILING === "1"
+function perf(label: string): () => void {
+	if (!profiling) return () => {}
+	const start = performance.now()
+	return () => {
+		const ms = (performance.now() - start).toFixed(1)
+		console.log(`[petit:perf] ${label}: ${ms}ms`)
+	}
+}
+
 /**
  * Walk up from a directory to find the repository root.
  * Tries multiple markers in priority order:
@@ -117,12 +128,20 @@ function serializeCategory(cat: ResolvedCategory): SerializedSidebarCategory {
 
 /** Load config, scan sidebar, and parse all documents into memory */
 async function buildState(configPath: string, useCache = true, userCwd?: string): Promise<PetitState> {
+	const endTotal = perf("buildState total")
+
+	const endConfig = perf("loadConfig + scanSidebar")
 	const config = await loadConfig(configPath)
 	const theme = getTheme(config.theme)
 	const sidebar = await scanSidebar(config)
+	endConfig()
+
 	const docs: PetitState["docs"] = {}
 	const cacheKey = `${theme.shiki.light}:${theme.shiki.dark}`
+
+	const endCache = perf("cache load")
 	const cache = useCache ? loadCache(cacheKey) : {}
+	endCache()
 
 	// Find repo root to compute repo-relative file paths
 	const repoRoot = findRepoRoot(userCwd ?? config.docsRoot)
@@ -131,15 +150,21 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 	}
 
 	const allEntries = collectAllEntries(sidebar)
+
+	const endParse = perf(`parse ${allEntries.length} documents`)
+	let cacheHits = 0
+	let cacheMisses = 0
 	for (const entry of allEntries) {
 		const fileContent = readFileSync(entry.filePath, "utf-8")
 		let parsed: ParsedDocument
 
 		if (useCache && isCached(cache, entry.filePath, fileContent)) {
 			parsed = getCached(cache, entry.filePath)!
+			cacheHits++
 		} else {
 			parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark } })
 			if (useCache) setCached(cache, entry.filePath, fileContent, parsed)
+			cacheMisses++
 		}
 
 		const stats = statSync(entry.filePath)
@@ -154,8 +179,17 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 			lastModified: stats.mtime.toISOString(),
 		}
 	}
+	endParse()
 
+	if (profiling) {
+		console.log(`[petit:perf] cache: ${cacheHits} hits, ${cacheMisses} misses`)
+	}
+
+	const endSave = perf("cache save")
 	if (useCache) saveCache(cache, cacheKey)
+	endSave()
+
+	endTotal()
 
 	return {
 		config,
@@ -386,7 +420,9 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 			try {
 				const effectiveUserCwd = options.userCwd || process.env.PETIT_USER_CWD
 				state = await buildState(configPath, !isDev, effectiveUserCwd)
+				const endSearch = perf("search index")
 				searchIndexSerialized = await computeSearchIndex(state)
+				endSearch()
 				console.log(`[petit] Loaded ${Object.keys(state.docs).length} documents`)
 			} catch (err) {
 				const message = err instanceof Error ? err.message : String(err)

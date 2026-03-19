@@ -40,6 +40,11 @@ export const devCommand = defineCommand({
 			description: "Port to listen on",
 			required: false,
 		},
+		profiling: {
+			type: "boolean",
+			description: "Show startup performance timings",
+			required: false,
+		},
 	},
 	async run({ args }) {
 		const userCwd = process.cwd()
@@ -75,6 +80,7 @@ export const devCommand = defineCommand({
 				...process.env,
 				PETIT_CONFIG_PATH: configPath,
 				PETIT_USER_CWD: userCwd,
+				...(args.profiling ? { PETIT_PROFILING: "1" } : {}),
 			},
 		})
 
@@ -106,8 +112,14 @@ export const devCommand = defineCommand({
 					continue
 				}
 
-				// Skip plugin internal messages
-				if (clean.startsWith("[petit]")) continue
+				// Skip plugin internal messages (but show perf lines when profiling)
+				if (clean.startsWith("[petit]") || clean.startsWith("[petit:perf]")) {
+					if (args.profiling && clean.includes("[petit:perf]")) {
+						const msg = clean.replace("[petit:perf] ", "")
+						console.log(`  \x1b[2m|\x1b[0m \x1b[36m${msg}\x1b[0m`)
+					}
+					continue
+				}
 
 				// Skip empty lines and vite noise
 				if (!clean) continue

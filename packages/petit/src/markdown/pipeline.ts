@@ -7,8 +7,8 @@ import remarkMdx from "remark-mdx"
 import remarkRehype from "remark-rehype"
 import rehypeSlug from "rehype-slug"
 import rehypeStringify from "rehype-stringify"
-import { createHighlighter, type HighlighterGeneric, type BundledLanguage, type BundledTheme } from "shiki"
-import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
+import { createHighlighterCore, type HighlighterCore } from "@shikijs/core"
+import { createJavaScriptRegexEngine } from "@shikijs/engine-javascript"
 import { visit } from "unist-util-visit"
 import type { Root, Element, ElementContent } from "hast"
 import type { DocumentHeading } from "./types"
@@ -31,13 +31,16 @@ import { rehypeThemePreview } from "./plugins/rehype-theme-preview"
 const DEFAULT_SHIKI_THEME = "github-dark-default"
 
 let currentShikiThemes: { light: string; dark: string } = { light: "github-light-default", dark: DEFAULT_SHIKI_THEME }
-let highlighterPromise: Promise<HighlighterGeneric<BundledLanguage, BundledTheme>> | undefined
+let highlighterPromise: Promise<HighlighterCore> | undefined
 
 /** Get or create a singleton shiki highlighter for the current themes */
-function getHighlighter(): Promise<HighlighterGeneric<BundledLanguage, BundledTheme>> {
+function getHighlighter(): Promise<HighlighterCore> {
 	if (!highlighterPromise) {
-		highlighterPromise = createHighlighter({
-			themes: [currentShikiThemes.light as BundledTheme, currentShikiThemes.dark as BundledTheme],
+		highlighterPromise = createHighlighterCore({
+			themes: [
+				import(`@shikijs/themes/${currentShikiThemes.light}`),
+				import(`@shikijs/themes/${currentShikiThemes.dark}`),
+			],
 			langs: [],
 			engine: createJavaScriptRegexEngine({ forgiving: true }),
 		})
@@ -96,13 +99,13 @@ function rehypeShikiPlugin() {
 			let resolvedLang = lang
 			if (!loadedLangs.includes(lang)) {
 				try {
-					await highlighter.loadLanguage(lang as BundledLanguage)
+					await highlighter.loadLanguage(import(`@shikijs/langs/${lang}`))
 				} catch {
 					// Unknown language: fall back to markdown highlighting
 					resolvedLang = "markdown"
 					if (!loadedLangs.includes("markdown")) {
 						try {
-							await highlighter.loadLanguage("markdown")
+							await highlighter.loadLanguage(import("@shikijs/langs/markdown"))
 						} catch {
 							continue
 						}
@@ -113,8 +116,8 @@ function rehypeShikiPlugin() {
 			const hast = highlighter.codeToHast(code, {
 				lang: resolvedLang,
 				themes: {
-					light: currentShikiThemes.light as BundledTheme,
-					dark: currentShikiThemes.dark as BundledTheme,
+					light: currentShikiThemes.light,
+					dark: currentShikiThemes.dark,
 				},
 				defaultColor: "dark",
 			})

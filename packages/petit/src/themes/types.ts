@@ -1,4 +1,7 @@
-import type { BundledTheme } from "shiki"
+import type { themeNames } from "@shikijs/themes"
+
+/** Shiki theme name from the bundled themes */
+type BundledTheme = (typeof themeNames)[number]
 
 /** Font configuration for a theme */
 export interface ThemeFonts {
