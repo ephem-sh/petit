@@ -47,6 +47,8 @@ interface SidebarProps {
 	logoDark?: string
 	/** Sidebar side (for shadcn Sidebar) */
 	side?: "left" | "right"
+	/** Show "Created with petit" credit link */
+	credits: boolean
 }
 
 /** Flatten categories and their children into a flat list for rendering */
@@ -62,7 +64,7 @@ function flattenCategories(categories: SidebarCategoryItem[]): SidebarCategoryIt
 }
 
 /** Sidebar navigation with categories and entry links */
-function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, logo, logoDark, side }: SidebarProps) {
+function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, logo, logoDark, side, credits }: SidebarProps) {
 	return (
 		<Sidebar side={side}>
 			<SidebarHeader className="p-4">
@@ -115,6 +117,20 @@ function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title
 						</SidebarGroupContent>
 					</SidebarGroup>
 				))}
+				{credits && (
+					<div className="px-4 py-6">
+						<a
+							href="https://petit.ephem.sh"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors lowercase"
+						>
+							created with
+							<img src="/petit.png" alt="petit" className="h-3 dark:hidden" />
+							<img src="/petit.dark.png" alt="petit" className="h-3 hidden dark:block" />
+						</a>
+					</div>
+				)}
 			</SidebarContent>
 		</Sidebar>
 	)

@@ -6,6 +6,7 @@ import { defineCommand } from "citty"
 
 const CONFIG_TEMPLATE = `{
 	"title": "My Docs",
+	"credits": true,
 	"sidebar": [
 		{ "label": "Getting Started", "path": "./docs/getting-started" }
 	]

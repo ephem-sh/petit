@@ -4,7 +4,7 @@ description: Set up a new documentation project with Petit
 order: 2
 ---
 
-Petit requires Node.js 20 or later. It works with any project
+Petit requires Node.js 24 or later. It works with any project
 regardless of language or framework.
 
 ## New project

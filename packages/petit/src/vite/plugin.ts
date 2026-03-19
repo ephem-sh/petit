@@ -367,6 +367,7 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 						branch: state.config.branch,
 						siteUrl: state.config.siteUrl ?? null,
 						favicon,
+						credits: state.config.credits,
 						shiki: { light: theme.shiki.light, dark: theme.shiki.dark },
 					}, null, "\t")}`
 				}

@@ -16,6 +16,7 @@ declare module "virtual:petit/config" {
 		branch: string
 		siteUrl: string | null
 		favicon: string | null
+		credits: boolean
 		shiki: { light: string; dark: string }
 	}
 }

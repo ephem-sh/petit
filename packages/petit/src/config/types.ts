@@ -64,6 +64,8 @@ export interface PetitConfig {
 	siteUrl?: string
 	/** Deploy target platform (default: "node") */
 	deploy?: "node" | "cloudflare" | "netlify" | "vercel" | "bun"
+	/** Show "Created with petit" credit in the sidebar (default: false) */
+	credits?: boolean
 }
 
 /** Resolved config with all defaults applied */

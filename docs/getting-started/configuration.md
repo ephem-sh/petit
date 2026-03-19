@@ -29,6 +29,7 @@ Here is a config file using every available option:
   "maxWidth": "lg",
   "sidebarPosition": "left",
   "toc": true,
+  "credits": true,
   "sidebar": [
     { "label": "Getting Started", "path": "./docs/getting-started" },
     { "label": "API Reference", "path": "./docs/api" },
@@ -58,6 +59,7 @@ fonts | { sans?: string, mono?: string } | - | Custom Google Fonts for body and 
 maxWidth | "sm" \| "md" \| "lg" \| "xl" | "lg" | Content area max width
 sidebarPosition | "left" \| "right" \| "center" | "left" | Sidebar placement
 toc | boolean | true | Show "On this page" table of contents
+credits | boolean | false | Show "Created with petit" link at the bottom of the sidebar
 sidebar | SidebarItem[] | [] | Navigation structure (see below)
 ```
 

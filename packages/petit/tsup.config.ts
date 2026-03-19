@@ -110,7 +110,7 @@ export default defineConfig({
 	format: ["esm"],
 	dts: true,
 	clean: true,
-	target: "node20",
+	target: "node24",
 	async onSuccess() {
 		// 1. Copy OG fonts
 		const fontSrc = resolve("src/og/fonts")
@@ -265,6 +265,7 @@ declare module "virtual:petit/config" {
 		branch: string
 		siteUrl: string | null
 		favicon: string | null
+		credits: boolean
 		shiki: { light: string; dark: string }
 	}
 }

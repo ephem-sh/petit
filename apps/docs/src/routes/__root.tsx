@@ -158,6 +158,7 @@ function RootLayout() {
 								logo={config.logo ?? undefined}
 								logoDark={config.logoDark ?? undefined}
 								side="right"
+								credits={config.credits}
 							/>
 						</>
 					) : (
@@ -170,6 +171,7 @@ function RootLayout() {
 								title={config.title}
 								logo={config.logo ?? undefined}
 								logoDark={config.logoDark ?? undefined}
+								credits={config.credits}
 							/>
 							<SidebarInset>
 								<header className="flex h-12 items-center gap-2 px-4 md:hidden">

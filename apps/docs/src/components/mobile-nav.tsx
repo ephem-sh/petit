@@ -20,10 +20,12 @@ interface MobileNavProps {
 	schemeSwitcher: boolean
 	/** Site title */
 	title: string
+	/** Whether to show credits in the sidebar footer */
+	credits: boolean
 }
 
 /** Mobile navigation drawer that wraps DocsSidebar in a left-side Sheet */
-function MobileNav({ open, onOpenChange, sidebar, currentSlug, onSearchOpen, schemeSwitcher, title }: MobileNavProps) {
+function MobileNav({ open, onOpenChange, sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, credits }: MobileNavProps) {
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent side="left" className="w-72 p-0">
@@ -33,6 +35,7 @@ function MobileNav({ open, onOpenChange, sidebar, currentSlug, onSearchOpen, sch
 					onSearchOpen={onSearchOpen}
 					schemeSwitcher={schemeSwitcher}
 					title={title}
+					credits={credits}
 				/>
 			</SheetContent>
 		</Sheet>
