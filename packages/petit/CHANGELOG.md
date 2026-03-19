@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.15 (2026-03-19)
+
+- feat: updated docs and skills for the new updated frontmatter config, modified core package to support updated on frontmatter
+
+
 ## 0.1.14 (2026-03-19)
 
 - feat: add credits config, profiling flag, writer skill, and DX fixes

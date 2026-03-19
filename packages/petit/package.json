@@ -1,6 +1,6 @@
 {
   "name": "@ephem-sh/petit",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Small, fast, local-first documentation",
   "license": "MIT",
   "author": "ephem-sh",
