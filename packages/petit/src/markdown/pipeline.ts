@@ -8,6 +8,7 @@ import remarkRehype from "remark-rehype"
 import rehypeSlug from "rehype-slug"
 import rehypeStringify from "rehype-stringify"
 import { createHighlighter, type HighlighterGeneric, type BundledLanguage, type BundledTheme } from "shiki"
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
 import { visit } from "unist-util-visit"
 import type { Root, Element, ElementContent } from "hast"
 import type { DocumentHeading } from "./types"
@@ -38,6 +39,7 @@ function getHighlighter(): Promise<HighlighterGeneric<BundledLanguage, BundledTh
 		highlighterPromise = createHighlighter({
 			themes: [currentShikiThemes.light as BundledTheme, currentShikiThemes.dark as BundledTheme],
 			langs: [],
+			engine: createJavaScriptRegexEngine({ forgiving: true }),
 		})
 	}
 	return highlighterPromise

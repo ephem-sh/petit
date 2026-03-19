@@ -13,6 +13,8 @@ interface OpenLink {
 	icon?: string
 	/** Image src for custom icons */
 	iconSrc?: string
+	/** Dark mode image src for custom icons */
+	iconSrcDark?: string
 	/** Phosphor icon component */
 	phosphorIcon?: React.ComponentType<{ className?: string }>
 }
@@ -56,6 +58,7 @@ function DocActions({ raw, title, filePath, repository, branch }: DocActionsProp
 			label: "Open in ChatGPT",
 			href: `https://chatgpt.com/?q=${encodeURIComponent(`Here is a documentation page titled "${title}":\n\n${raw}`)}`,
 			iconSrc: "/custom/openai.png",
+			iconSrcDark: "/custom/openai.dark.png",
 		},
 		{
 			label: "Open in Claude",
@@ -152,7 +155,10 @@ function DocActions({ raw, title, filePath, repository, branch }: DocActionsProp
 											</svg>
 										)}
 										{link.iconSrc && (
-											<img src={link.iconSrc} alt="" className="size-3.5 shrink-0" />
+											<>
+												<img src={link.iconSrc} alt="" className={link.iconSrcDark ? "size-3.5 shrink-0 dark:hidden" : "size-3.5 shrink-0"} />
+												{link.iconSrcDark && <img src={link.iconSrcDark} alt="" className="size-3.5 shrink-0 hidden dark:block" />}
+											</>
 										)}
 										{link.phosphorIcon && (
 											<link.phosphorIcon className="size-3.5 shrink-0" />
