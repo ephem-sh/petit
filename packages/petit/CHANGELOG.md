@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.14 (2026-03-19)
+
+- feat: add credits config, profiling flag, writer skill, and DX fixes
+- fix: update relative path for urls
+- chore: remove shiki and rehype-shiki for shiki/core, engine, langs, themes packages
+
+
 ## 0.1.13 (2026-03-19)
 
 - chore: add light mode icon for openai, change shiki engine to js-compat
