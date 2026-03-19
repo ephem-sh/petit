@@ -38,8 +38,10 @@ export const exportCommand = defineCommand({
 			)
 			for (const entry of category.entries) {
 				if (entry.draft) continue
+				const slugDir = entry.slug.includes("/") ? entry.slug.slice(0, entry.slug.lastIndexOf("/")) : ""
 				const parsed = await parseDocument(entry.filePath, {
 					shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark },
+					slugDir,
 				})
 				sections.push(`<article class="prose">${parsed.html}</article>`)
 			}

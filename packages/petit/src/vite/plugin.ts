@@ -162,7 +162,8 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 			parsed = getCached(cache, entry.filePath)!
 			cacheHits++
 		} else {
-			parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark } })
+			const slugDir = entry.slug.includes("/") ? entry.slug.slice(0, entry.slug.lastIndexOf("/")) : ""
+			parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
 			if (useCache) setCached(cache, entry.filePath, fileContent, parsed)
 			cacheMisses++
 		}

@@ -55,7 +55,8 @@ export const buildCommand = defineCommand({
 			for (const entry of category.entries) {
 				if (entry.draft) continue
 
-				const parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark } })
+				const slugDir = entry.slug.includes("/") ? entry.slug.slice(0, entry.slug.lastIndexOf("/")) : ""
+				const parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
 				rawDocs[entry.slug] = parsed.raw
 
 				searchDocs.push({

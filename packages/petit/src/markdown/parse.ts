@@ -7,6 +7,8 @@ import type { ParsedDocument, DocumentFrontmatter, DocumentHeading } from "./typ
 export interface ParseDocumentOptions {
 	/** Shiki theme names for light and dark code highlighting */
 	shikiThemes?: { light: string; dark: string }
+	/** Directory portion of the document slug for resolving relative links */
+	slugDir?: string
 }
 
 /** Parse a markdown or mdx file into a structured document with HTML, frontmatter, and headings */
@@ -18,7 +20,7 @@ export async function parseDocument(filePath: string, options?: ParseDocumentOpt
 		? { shikiThemes: options.shikiThemes }
 		: undefined
 	const processor = createProcessor(processorOptions)
-	const vfile = await processor.process(content)
+	const vfile = await processor.process({ value: content, data: { slugDir: options?.slugDir } })
 
 	const frontmatter: DocumentFrontmatter = {
 		title: typeof data.title === "string" ? data.title : undefined,

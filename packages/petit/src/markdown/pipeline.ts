@@ -24,6 +24,7 @@ import { rehypeCodeMeta } from "./plugins/rehype-code-meta"
 import { rehypeTables } from "./plugins/rehype-tables"
 import rehypeKatex from "rehype-katex"
 import { rehypeImages } from "./plugins/rehype-images"
+import { rehypeLinks } from "./plugins/rehype-links"
 import { rehypeCallouts } from "./plugins/rehype-callouts"
 import { rehypeVideo } from "./plugins/rehype-video"
 import { rehypeThemePreview } from "./plugins/rehype-theme-preview"
@@ -200,6 +201,7 @@ export function createProcessor(options?: ProcessorOptions): MarkdownProcessor {
 			.use(rehypeCodeblock)
 			.use(rehypeTables)
 			.use(rehypeImages)
+			.use(rehypeLinks)
 			.use(rehypeCollectHeadings)
 			.use(rehypeStringify, { allowDangerousHtml: true }) as unknown as MarkdownProcessor
 
