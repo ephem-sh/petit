@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.13 (2026-03-19)
+
+- chore: add light mode icon for openai, change shiki engine to js-compat
+- feat: add nested categories discovery, improve links ui and local dev setup
+- fix: use independent chokidar watcher for HMR when running via npx/bunx
+
+
 ## 0.1.12 (2026-03-18)
 
 - feat: add vite config hook to allow serving fonts from tmp dir
