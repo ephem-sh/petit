@@ -16,6 +16,8 @@ export interface DocumentFrontmatter {
 	description?: string
 	order?: number
 	draft?: boolean
+	/** User-provided last-updated date (highest priority for lastModified resolution) */
+	updated?: string
 }
 
 /** A heading extracted from the document for table of contents */

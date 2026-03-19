@@ -2,6 +2,7 @@
 title: Programmatic SEO
 description: Automatic search engine optimization for your documentation
 order: 2
+updated: 2026-03-19
 ---
 
 Petit generates comprehensive SEO metadata and Open Graph images
@@ -50,6 +51,28 @@ a JSON-LD script block with `TechArticle` schema containing the
 headline, description, URL, and OG image. Pages without a
 description don't get JSON-LD output.
 ```
+
+## Last updated date
+
+Every page displays a "last updated" date below the content. Petit
+resolves this date using two sources in priority order:
+
+1. **Frontmatter** -- set `updated` in your frontmatter to use an
+   explicit date
+2. **File modification time** -- if no frontmatter date is set, Petit
+   uses the filesystem modification time (reflects the build time in
+   CI environments)
+
+```yaml
+---
+title: My page
+updated: 2026-03-15
+---
+```
+
+The date appears in the page footer and is included in the
+`article:modified_time` Open Graph tag and `dateModified` JSON-LD
+field for search engines.
 
 ## Open Graph images
 

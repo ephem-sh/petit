@@ -2,6 +2,7 @@
 title: Accordion
 description: Collapsible content sections
 order: 6
+updated: 2026-03-16
 ---
 
 # Accordion

@@ -2,6 +2,7 @@
 title: Steps
 description: Numbered step-by-step guides
 order: 8
+updated: 2026-03-16
 ---
 
 # Steps

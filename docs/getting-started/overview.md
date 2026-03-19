@@ -2,6 +2,7 @@
 title: Overview
 description: Fast and local-first documentation platform
 order: 1
+updated: 2026-03-17
 ---
 
 Petit is a small, fast, local-first documentation platform. Write

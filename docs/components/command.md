@@ -2,6 +2,7 @@
 title: Command
 description: Package manager commands with tabbed interface
 order: 3
+updated: 2026-03-17
 ---
 
 Display package manager commands with automatic tabs. Supports any

@@ -21,5 +21,5 @@ Read only what you need for the task:
 1. **Classify the task.** Is this writing content, configuring Petit, setting up a new project, or a combination?
 2. **Read the relevant reference file(s)** from the list above. Always read `./documentation.md` when writing any user-facing text.
 3. **Investigate the codebase.** Read source code, config files, check git history for recent changes. Launch explorer agents for broad searches.
-4. **Execute.** Write content following documentation standards. Configure Petit following the reference exactly.
+4. **Execute.** Write content following documentation standards. Configure Petit following the reference exactly. Always set `updated: YYYY-MM-DD` in frontmatter with today's date (new pages and edited pages).
 5. **Verify.** Self-review for accuracy, formatting, link integrity, and consistency with existing docs.

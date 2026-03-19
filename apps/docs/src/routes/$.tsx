@@ -123,7 +123,7 @@ function DocPage() {
 						</div>
 						{doc.lastModified && (
 							<p className="mt-3 text-xs text-muted-foreground">
-								Last updated {new Date(doc.lastModified).toLocaleDateString("en-US", {
+								Last updated {new Date(doc.lastModified.includes("T") ? doc.lastModified : `${doc.lastModified}T00:00:00`).toLocaleDateString("en-US", {
 									year: "numeric",
 									month: "long",
 									day: "numeric",

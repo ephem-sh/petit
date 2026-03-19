@@ -2,6 +2,7 @@
 title: Markdown
 description: Supported markdown features and syntax
 order: 1
+updated: 2026-03-17
 ---
 
 Petit supports standard markdown with GitHub Flavored Markdown

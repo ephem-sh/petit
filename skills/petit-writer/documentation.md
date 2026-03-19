@@ -79,6 +79,11 @@ accessible.
   tables).
 - **Media:** Use lowercase hyphenated filenames. Provide descriptive alt text
   for all images.
+- **Frontmatter dates:** Always include `updated:` in frontmatter with
+  today's date in YYYY-MM-DD format. When creating a new page, set
+  `updated` to today. When editing an existing page, update the
+  `updated` field to today. This is required for every documentation
+  file.
 
 ### Structure
 - **BLUF:** Start with an introduction explaining what to expect.

@@ -2,6 +2,7 @@
 title: Media
 description: Images, logos, favicons, and media files
 order: 7
+updated: 2026-03-18
 ---
 
 Petit serves media files from a directory relative to your

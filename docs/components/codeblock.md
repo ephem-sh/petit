@@ -2,6 +2,7 @@
 title: Codeblock
 description: Syntax-highlighted code with copy button and optional filename
 order: 2
+updated: 2026-03-17
 ---
 
 # Codeblock

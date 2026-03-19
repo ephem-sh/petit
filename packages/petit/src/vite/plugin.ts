@@ -73,6 +73,7 @@ function findRepoRoot(startDir: string): string | undefined {
 	return candidates[0].dir
 }
 
+
 /** Serialized sidebar category for the virtual module */
 interface SerializedSidebarCategory {
 	label: string
@@ -168,7 +169,9 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 			cacheMisses++
 		}
 
-		const stats = statSync(entry.filePath)
+		const lastModified = parsed.frontmatter.updated
+			?? statSync(entry.filePath).mtime.toISOString()
+
 		docs[entry.slug] = {
 			html: parsed.html,
 			raw: parsed.raw,
@@ -177,7 +180,7 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 			filePath: repoRoot
 				? path.relative(repoRoot, entry.filePath).replace(/\\/g, "/")
 				: path.relative(config.docsRoot, entry.filePath).replace(/\\/g, "/"),
-			lastModified: stats.mtime.toISOString(),
+			lastModified,
 		}
 	}
 	endParse()

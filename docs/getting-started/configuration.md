@@ -2,6 +2,7 @@
 title: Configuration
 description: Configure your Petit documentation site
 order: 3
+updated: 2026-03-19
 ---
 
 The `petit.config.json` file controls your site's appearance,

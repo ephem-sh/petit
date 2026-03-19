@@ -2,6 +2,7 @@
 title: Video
 description: Embedded YouTube and Vimeo videos
 order: 10
+updated: 2026-03-17
 ---
 
 Embed videos from YouTube or Vimeo with a simple code fence.

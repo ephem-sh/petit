@@ -2,6 +2,7 @@
 title: Cards
 description: Display linked content as a grid of cards
 order: 1
+updated: 2026-03-17
 ---
 
 # Cards

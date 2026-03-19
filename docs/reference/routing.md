@@ -165,6 +165,7 @@ title: API Reference
 description: Complete API documentation
 order: 2
 draft: false
+updated: 2026-03-15
 ---
 ```
 
@@ -174,6 +175,7 @@ title | string | - | Page title used in sidebar, browser tab, and SEO
 description | string | - | Short summary for SEO meta tags and previews
 order | number | - | Sort position within its section (lower first)
 draft | boolean | false | Hide the page from sidebar, search, and navigation
+updated | string | - | Override the "last updated" date shown on the page
 ```
 
 ## Page labels

@@ -2,6 +2,7 @@
 title: Diagram
 description: Mermaid diagrams rendered client-side
 order: 4
+updated: 2026-03-16
 ---
 
 # Diagram

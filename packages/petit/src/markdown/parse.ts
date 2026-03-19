@@ -27,6 +27,7 @@ export async function parseDocument(filePath: string, options?: ParseDocumentOpt
 		description: typeof data.description === "string" ? data.description : undefined,
 		order: typeof data.order === "number" ? data.order : undefined,
 		draft: typeof data.draft === "boolean" ? data.draft : undefined,
+		updated: typeof data.updated === "string" ? data.updated : data.updated instanceof Date ? data.updated.toISOString().split("T")[0] : undefined,
 	}
 
 	const headings = (

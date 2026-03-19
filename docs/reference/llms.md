@@ -2,6 +2,7 @@
 title: LLMs
 description: Machine-readable endpoints for AI agents and large language models
 order: 3
+updated: 2026-03-18
 ---
 
 Petit makes your documentation directly consumable by large

@@ -2,6 +2,7 @@
 title: Callout
 description: Styled alert blocks for notes, warnings, and tips
 order: 9
+updated: 2026-03-17
 ---
 
 Highlight important information with colored callout blocks.

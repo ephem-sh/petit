@@ -97,11 +97,13 @@ title: Page title
 description: Summary for meta tags and search
 order: 1
 draft: true
+updated: 2026-03-15
 ---
 ```
 
 All fields optional. `draft: true` hides from sidebar, search, and build output.
 No `order` = sorted last. No `title` = derived from filename (kebab-to-title).
+`updated` overrides the "last updated" date (falls back to file modification time).
 
 ## Markdown features
 

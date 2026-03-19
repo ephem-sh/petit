@@ -2,6 +2,7 @@
 title: Themes
 description: Built-in theme presets and customization
 order: 6
+updated: 2026-03-18
 ---
 
 Petit ships with 18 built-in themes. Set the `theme` option in

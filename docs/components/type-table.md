@@ -2,6 +2,7 @@
 title: Type Table
 description: API reference tables for type definitions
 order: 5
+updated: 2026-03-17
 ---
 
 # Type Table

@@ -2,6 +2,7 @@
 title: SKILL.md
 description: Use the petit-writer skill with Claude Code to generate and maintain documentation
 order: 5
+updated: 2026-03-19
 ---
 
 Petit ships with a agentic skill called `petit-writer` that

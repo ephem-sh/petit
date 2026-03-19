@@ -2,6 +2,7 @@
 title: Installation
 description: Set up a new documentation project with Petit
 order: 2
+updated: 2026-03-19
 ---
 
 Petit requires Node.js 24 or later. It works with any project

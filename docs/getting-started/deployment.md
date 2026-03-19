@@ -2,6 +2,7 @@
 title: Deployment
 description: Deploy your documentation to any hosting platform
 order: 4
+updated: 2026-03-18
 ---
 
 Petit builds your docs for any hosting platform. Set the `deploy`

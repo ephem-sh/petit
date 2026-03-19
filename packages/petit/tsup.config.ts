@@ -292,6 +292,7 @@ declare module "virtual:petit/docs" {
 				description?: string
 				order?: number
 				draft?: boolean
+				updated?: string
 			}
 			headings: Array<{ depth: number; text: string; id: string }>
 			lastModified: string

@@ -2,6 +2,7 @@
 title: Tabs
 description: Tabbed content panels
 order: 7
+updated: 2026-03-16
 ---
 
 # Tabs
