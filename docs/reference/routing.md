@@ -76,6 +76,68 @@ This is useful for grouping related categories:
 }
 ```
 
+## Nested categories
+
+Petit automatically discovers subdirectories inside each sidebar
+path and renders them as nested categories. You don't need to list
+every subdirectory in your config. Point a sidebar entry at a
+parent directory and Petit walks into its subdirectories, up to
+three levels deep.
+
+Given this directory structure:
+
+```
+docs/
+  examples/
+    overview.md
+    go/
+      hello-world.md
+      middleware.md
+    python/
+      fastapi.md
+      hello-world.md
+    rust/
+      hello-world.md
+```
+
+And this config:
+
+```json
+{
+  "sidebar": [
+    { "label": "Examples", "path": "./docs/examples" }
+  ]
+}
+```
+
+Petit creates an "Examples" category with `overview.md` as a
+direct entry, plus three subcategories ("Go," "Python," "Rust")
+each containing their own entries.
+
+Subcategory labels are derived from the directory name using the
+same kebab-to-title conversion as filenames. A directory named
+`getting-started` becomes "Getting Started."
+
+### Sorting in nested categories
+
+Top-level entries still respect the `order` frontmatter field.
+Entries inside subdirectories are sorted alphabetically by label.
+Subcategories themselves are also sorted alphabetically.
+
+### Depth limit
+
+Petit recurses up to three levels deep. Directories beyond the
+third level are ignored. For most documentation sites, one or two
+levels of nesting is sufficient.
+
+```
+examples/           <-- depth 0 (top-level category)
+  go/               <-- depth 1 (subcategory)
+    advanced/       <-- depth 2 (sub-subcategory)
+      internals/    <-- depth 3 (maximum)
+        deeper/     <-- ignored
+```
+
 ## Sort order
 
 Pages within each category are sorted in two steps:

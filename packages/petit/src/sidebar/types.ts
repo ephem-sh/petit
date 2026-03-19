@@ -18,6 +18,10 @@ export interface SidebarCategory {
 	label: string
 	/** Entries within this category, sorted by order then alphabetically */
 	entries: SidebarEntry[]
+	/** Nested subcategories */
+	children?: SidebarCategory[]
+	/** Nesting depth: 0 = top-level, max 3 */
+	depth: number
 }
 
 /** The full resolved sidebar structure */

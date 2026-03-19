@@ -99,7 +99,9 @@ export const devCommand = defineCommand({
 					// Detect server ready
 					if (clean.includes("Local:") && !serverReady) {
 						serverReady = true
-						log.ready(`http://localhost:${port}`, docCount)
+						const portMatch = clean.match(/localhost:(\d+)/)
+						const actualPort = portMatch ? portMatch[1] : String(port)
+						log.ready(`http://localhost:${actualPort}`, docCount)
 					}
 					continue
 				}
@@ -110,6 +112,7 @@ export const devCommand = defineCommand({
 				// Skip empty lines and vite noise
 				if (!clean) continue
 				if (clean.includes("Re-optimizing dependencies")) continue
+				if (clean.includes("is in use")) continue
 
 				// Pass through everything else (HMR updates, errors, etc)
 				console.log(line)

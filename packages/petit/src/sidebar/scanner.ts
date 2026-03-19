@@ -25,6 +25,79 @@ async function readFrontmatter(
 	}
 }
 
+async function scanDirectory(
+	dirPath: string,
+	slugPrefix: string,
+	depth: number,
+): Promise<SidebarCategory> {
+	const dirEntries = await readdir(dirPath, { withFileTypes: true })
+
+	const files = dirEntries
+		.filter((entry) => {
+			if (!entry.isFile()) return false
+			const ext = extname(entry.name).toLowerCase()
+			return ext === ".md" || ext === ".mdx"
+		})
+		.map((entry) => entry.name)
+
+	const entries: SidebarEntry[] = []
+
+	for (const file of files) {
+		const filePath = join(dirPath, file)
+		const nameWithoutExt = basename(file, extname(file))
+		const fm = await readFrontmatter(filePath)
+
+		entries.push({
+			label: fm.title ?? kebabToTitle(nameWithoutExt),
+			slug: `${slugPrefix}/${nameWithoutExt}`
+				.replace(/^\.\//, "")
+				.replace(/\/+/g, "/"),
+			filePath,
+			order: fm.order ?? Infinity,
+			draft: fm.draft ?? false,
+		})
+	}
+
+	if (depth === 0) {
+		entries.sort((a, b) => {
+			if (a.order !== b.order) return a.order - b.order
+			return a.label.localeCompare(b.label)
+		})
+	} else {
+		entries.sort((a, b) => a.label.localeCompare(b.label))
+	}
+
+	let children: SidebarCategory[] | undefined
+
+	if (depth < 3) {
+		const subdirs = dirEntries.filter((entry) => entry.isDirectory())
+
+		if (subdirs.length > 0) {
+			children = []
+			for (const subdir of subdirs) {
+				const childPath = join(dirPath, subdir.name)
+				const childSlug = `${slugPrefix}/${subdir.name}`
+				const child = await scanDirectory(childPath, childSlug, depth + 1)
+				child.label = kebabToTitle(subdir.name)
+				children.push(child)
+			}
+			children.sort((a, b) => a.label.localeCompare(b.label))
+		}
+	}
+
+	const category: SidebarCategory = {
+		label: "",
+		entries,
+		depth,
+	}
+
+	if (children) {
+		category.children = children
+	}
+
+	return category
+}
+
 /** Scan the docs directory and build the resolved sidebar structure from config */
 export async function scanSidebar(
 	config: ResolvedConfig,
@@ -36,6 +109,7 @@ export async function scanSidebar(
 			const category: SidebarCategory = {
 				label: item.label,
 				entries: [],
+				depth: 0,
 			}
 			categories.push(category)
 			continue
@@ -43,46 +117,17 @@ export async function scanSidebar(
 
 		const dirPath = join(config.docsRoot, item.path)
 
-		let files: string[]
 		try {
-			const dirEntries = await readdir(dirPath, { withFileTypes: true })
-			files = dirEntries
-				.filter((entry) => {
-					if (!entry.isFile()) return false
-					const ext = extname(entry.name).toLowerCase()
-					return ext === ".md" || ext === ".mdx"
-				})
-				.map((entry) => entry.name)
+			const category = await scanDirectory(dirPath, item.path, 0)
+			category.label = item.label
+			categories.push(category)
 		} catch {
 			console.warn(
 				`[petit] sidebar directory not found, skipping: ${dirPath}`,
 			)
-			categories.push({ label: item.label, entries: [] })
+			categories.push({ label: item.label, entries: [], depth: 0 })
 			continue
 		}
-
-		const entries: SidebarEntry[] = []
-
-		for (const file of files) {
-			const filePath = join(dirPath, file)
-			const nameWithoutExt = basename(file, extname(file))
-			const fm = await readFrontmatter(filePath)
-
-			entries.push({
-				label: fm.title ?? kebabToTitle(nameWithoutExt),
-				slug: `${item.path}/${nameWithoutExt}`.replace(/^\.\//, "").replace(/\/+/g, "/"),
-				filePath,
-				order: fm.order ?? Infinity,
-				draft: fm.draft ?? false,
-			})
-		}
-
-		entries.sort((a, b) => {
-			if (a.order !== b.order) return a.order - b.order
-			return a.label.localeCompare(b.label)
-		})
-
-		categories.push({ label: item.label, entries })
 	}
 
 	return categories

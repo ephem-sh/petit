@@ -21,10 +21,13 @@ declare module "virtual:petit/config" {
 }
 
 declare module "virtual:petit/sidebar" {
-	export const sidebar: Array<{
+	export interface SidebarCategory {
 		label: string
+		depth: number
 		entries: Array<{ label: string; slug: string; draft: boolean }>
-	}>
+		children?: SidebarCategory[]
+	}
+	export const sidebar: SidebarCategory[]
 }
 
 declare module "virtual:petit/docs" {

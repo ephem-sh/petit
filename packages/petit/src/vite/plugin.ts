@@ -5,6 +5,7 @@ import { watch } from "chokidar"
 import type { Plugin } from "vite"
 import { findConfigFile, loadConfig } from "../config/loader"
 import { scanSidebar } from "../sidebar/scanner"
+import type { SidebarCategory as ResolvedCategory, SidebarEntry } from "../sidebar/types"
 import { parseDocument } from "../markdown/parse"
 import type { ResolvedConfig } from "../config/types"
 import type { ParsedDocument } from "../markdown/types"
@@ -61,13 +62,18 @@ function findRepoRoot(startDir: string): string | undefined {
 	return candidates[0].dir
 }
 
+/** Serialized sidebar category for the virtual module */
+interface SerializedSidebarCategory {
+	label: string
+	entries: Array<{ label: string; slug: string; draft: boolean }>
+	children?: SerializedSidebarCategory[]
+	depth: number
+}
+
 /** In-memory state holding config, sidebar, and parsed documents */
 interface PetitState {
 	config: ResolvedConfig
-	sidebar: Array<{
-		label: string
-		entries: Array<{ label: string; slug: string; draft: boolean }>
-	}>
+	sidebar: SerializedSidebarCategory[]
 	docs: Record<
 		string,
 		{
@@ -79,6 +85,34 @@ interface PetitState {
 			lastModified: string
 		}
 	>
+}
+
+/** Recursively collect all sidebar entries from nested categories */
+function collectAllEntries(categories: ResolvedCategory[]): SidebarEntry[] {
+	const result: SidebarEntry[] = []
+	for (const cat of categories) {
+		result.push(...cat.entries)
+		if (cat.children) {
+			result.push(...collectAllEntries(cat.children))
+		}
+	}
+	return result
+}
+
+/** Recursively serialize a sidebar category for the virtual module */
+function serializeCategory(cat: ResolvedCategory): SerializedSidebarCategory {
+	return {
+		label: cat.label,
+		entries: cat.entries.map((e) => ({
+			label: e.label,
+			slug: e.slug,
+			draft: e.draft,
+		})),
+		...(cat.children?.length ? {
+			children: cat.children.map(serializeCategory),
+		} : {}),
+		depth: cat.depth,
+	}
 }
 
 /** Load config, scan sidebar, and parse all documents into memory */
@@ -96,29 +130,28 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 		console.warn("[petit] Could not detect repo root for GitHub links. Initialize git or add a .gitignore at your project root.")
 	}
 
-	for (const category of sidebar) {
-		for (const entry of category.entries) {
-			const fileContent = readFileSync(entry.filePath, "utf-8")
-			let parsed: ParsedDocument
+	const allEntries = collectAllEntries(sidebar)
+	for (const entry of allEntries) {
+		const fileContent = readFileSync(entry.filePath, "utf-8")
+		let parsed: ParsedDocument
 
-			if (useCache && isCached(cache, entry.filePath, fileContent)) {
-				parsed = getCached(cache, entry.filePath)!
-			} else {
-				parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark } })
-				if (useCache) setCached(cache, entry.filePath, fileContent, parsed)
-			}
+		if (useCache && isCached(cache, entry.filePath, fileContent)) {
+			parsed = getCached(cache, entry.filePath)!
+		} else {
+			parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark } })
+			if (useCache) setCached(cache, entry.filePath, fileContent, parsed)
+		}
 
-			const stats = statSync(entry.filePath)
-			docs[entry.slug] = {
-				html: parsed.html,
-				raw: parsed.raw,
-				frontmatter: parsed.frontmatter,
-				headings: parsed.headings,
-				filePath: repoRoot
-					? path.relative(repoRoot, entry.filePath).replace(/\\/g, "/")
-					: path.relative(config.docsRoot, entry.filePath).replace(/\\/g, "/"),
-				lastModified: stats.mtime.toISOString(),
-			}
+		const stats = statSync(entry.filePath)
+		docs[entry.slug] = {
+			html: parsed.html,
+			raw: parsed.raw,
+			frontmatter: parsed.frontmatter,
+			headings: parsed.headings,
+			filePath: repoRoot
+				? path.relative(repoRoot, entry.filePath).replace(/\\/g, "/")
+				: path.relative(config.docsRoot, entry.filePath).replace(/\\/g, "/"),
+			lastModified: stats.mtime.toISOString(),
 		}
 	}
 
@@ -126,16 +159,23 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 
 	return {
 		config,
-		sidebar: sidebar.map((cat) => ({
-			label: cat.label,
-			entries: cat.entries.map((e) => ({
-				label: e.label,
-				slug: e.slug,
-				draft: e.draft,
-			})),
-		})),
+		sidebar: sidebar.map(serializeCategory),
 		docs,
 	}
+}
+
+/** Recursively flatten serialized sidebar into entry/category pairs */
+function flattenSidebarEntries(categories: SerializedSidebarCategory[]): Array<{ entry: { label: string; slug: string; draft: boolean }; categoryLabel: string }> {
+	const result: Array<{ entry: { label: string; slug: string; draft: boolean }; categoryLabel: string }> = []
+	for (const cat of categories) {
+		for (const entry of cat.entries) {
+			result.push({ entry, categoryLabel: cat.label })
+		}
+		if (cat.children) {
+			result.push(...flattenSidebarEntries(cat.children))
+		}
+	}
+	return result
 }
 
 /** Compute the serialized search index from the current state */
@@ -148,35 +188,33 @@ async function computeSearchIndex(st: PetitState): Promise<SerializedSearchIndex
 		category: string
 		headingId: string
 	}> = []
-	for (const cat of st.sidebar) {
-		for (const entry of cat.entries) {
-			if (entry.draft) continue
-			const doc = st.docs[entry.slug]
-			if (!doc) continue
+	for (const { entry, categoryLabel } of flattenSidebarEntries(st.sidebar)) {
+		if (entry.draft) continue
+		const doc = st.docs[entry.slug]
+		if (!doc) continue
 
-			const pageTitle = doc.frontmatter.title ?? entry.label
-			const pageContent = stripHtml(doc.html)
+		const pageTitle = doc.frontmatter.title ?? entry.label
+		const pageContent = stripHtml(doc.html)
 
+		searchDocs.push({
+			slug: entry.slug,
+			title: pageTitle,
+			description: doc.frontmatter.description ?? "",
+			content: pageContent,
+			category: categoryLabel,
+			headingId: "",
+		})
+
+		for (const heading of doc.headings) {
+			if (heading.depth < 2 || heading.depth > 3) continue
 			searchDocs.push({
 				slug: entry.slug,
-				title: pageTitle,
-				description: doc.frontmatter.description ?? "",
-				content: pageContent,
-				category: cat.label,
-				headingId: "",
+				title: heading.text,
+				description: pageTitle,
+				content: "",
+				category: categoryLabel,
+				headingId: heading.id,
 			})
-
-			for (const heading of doc.headings) {
-				if (heading.depth < 2 || heading.depth > 3) continue
-				searchDocs.push({
-					slug: entry.slug,
-					title: heading.text,
-					description: pageTitle,
-					content: "",
-					category: cat.label,
-					headingId: heading.id,
-				})
-			}
 		}
 	}
 	const { serialized } = await buildSearchIndex(searchDocs)
@@ -210,6 +248,7 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 
 		config() {
 			const thisFile = fileURLToPath(import.meta.url)
+			const distDir = path.resolve(path.dirname(thisFile), "..")
 			let dir = path.dirname(thisFile)
 			while (dir !== path.dirname(dir)) {
 				if (path.basename(dir) === "node_modules") {
@@ -217,7 +256,14 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				}
 				dir = path.dirname(dir)
 			}
-			return { server: { fs: { allow: [path.dirname(thisFile)] } } }
+			// Local dev (not inside node_modules): allow dist/ and monorepo node_modules
+			const repoRoot = findRepoRoot(distDir)
+			const allow = [distDir]
+			if (repoRoot) {
+				const nm = path.join(repoRoot, "node_modules")
+				if (existsSync(nm)) allow.push(nm)
+			}
+			return { server: { fs: { allow } } }
 		},
 
 		resolveId(id) {

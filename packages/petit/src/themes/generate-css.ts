@@ -78,8 +78,6 @@ export function generateProseCSS(theme: ThemeDefinition): string {
 	margin-top: 2.5rem;
 	margin-bottom: 0.75rem;
 	line-height: 1.3;
-	padding-bottom: 0.5rem;
-	border-bottom: 1px solid var(--border);
 }
 
 .prose :where(h3):not(:where([class~="not-prose"],[class~="not-prose"] *)) {

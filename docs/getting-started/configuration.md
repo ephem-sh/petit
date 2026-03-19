@@ -93,8 +93,10 @@ In a monorepo you can pull docs from multiple locations:
 }
 ```
 
-For page ordering, URL generation, frontmatter fields, and draft
-pages, see the [routing reference](/reference/routing).
+Subdirectories inside each path are automatically discovered as
+nested categories, up to three levels deep. See the
+[routing reference](/reference/routing) for details on nested
+categories, page ordering, frontmatter fields, and draft pages.
 
 ## Themes
 

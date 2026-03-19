@@ -7,10 +7,22 @@ import { ContentRenderer } from "@/components/content-renderer"
 import { DocActions } from "@/components/doc-actions"
 import { TableOfContents } from "@/components/table-of-contents"
 
+/** Recursively flatten all non-draft entries from sidebar categories */
+function flattenEntries(categories: typeof sidebar): Array<{ label: string; slug: string }> {
+	const result: Array<{ label: string; slug: string }> = []
+	for (const cat of categories) {
+		for (const e of cat.entries) {
+			if (!e.draft) result.push({ label: e.label, slug: e.slug })
+		}
+		if (cat.children) {
+			result.push(...flattenEntries(cat.children))
+		}
+	}
+	return result
+}
+
 /** Flat list of all doc entries in sidebar order */
-const allEntries = sidebar.flatMap((cat) =>
-	cat.entries.filter((e) => !e.draft).map((e) => ({ label: e.label, slug: e.slug })),
-)
+const allEntries = flattenEntries(sidebar)
 
 const MAX_WIDTH_MAP = {
 	sm: "max-w-4xl",

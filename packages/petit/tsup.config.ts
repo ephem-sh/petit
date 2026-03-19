@@ -270,10 +270,13 @@ declare module "virtual:petit/config" {
 }
 
 declare module "virtual:petit/sidebar" {
-	export const sidebar: Array<{
+	interface SidebarCategory {
 		label: string
 		entries: Array<{ label: string; slug: string; draft: boolean }>
-	}>
+		children?: SidebarCategory[]
+		depth: number
+	}
+	export const sidebar: Array<SidebarCategory>
 }
 
 declare module "virtual:petit/docs" {

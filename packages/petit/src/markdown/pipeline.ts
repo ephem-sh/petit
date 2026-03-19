@@ -6,7 +6,6 @@ import remarkFrontmatter from "remark-frontmatter"
 import remarkMdx from "remark-mdx"
 import remarkRehype from "remark-rehype"
 import rehypeSlug from "rehype-slug"
-import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypeStringify from "rehype-stringify"
 import { createHighlighter, type HighlighterGeneric, type BundledLanguage, type BundledTheme } from "shiki"
 import { visit } from "unist-util-visit"
@@ -192,7 +191,6 @@ export function createProcessor(options?: ProcessorOptions): MarkdownProcessor {
 			.use(rehypeSteps)
 			.use(rehypeCodeMeta)
 			.use(rehypeSlug)
-			.use(rehypeAutolinkHeadings, { behavior: "wrap" })
 			.use(rehypeShikiPlugin)
 			.use(rehypeCodeblock)
 			.use(rehypeTables)

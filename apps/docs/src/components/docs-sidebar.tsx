@@ -25,6 +25,8 @@ interface SidebarEntryItem {
 interface SidebarCategoryItem {
 	label: string
 	entries: SidebarEntryItem[]
+	children?: SidebarCategoryItem[]
+	depth: number
 }
 
 /** Props for the DocsSidebar component */
@@ -45,6 +47,18 @@ interface SidebarProps {
 	logoDark?: string
 	/** Sidebar side (for shadcn Sidebar) */
 	side?: "left" | "right"
+}
+
+/** Flatten categories and their children into a flat list for rendering */
+function flattenCategories(categories: SidebarCategoryItem[]): SidebarCategoryItem[] {
+	const result: SidebarCategoryItem[] = []
+	for (const cat of categories) {
+		result.push(cat)
+		if (cat.children) {
+			result.push(...flattenCategories(cat.children))
+		}
+	}
+	return result
 }
 
 /** Sidebar navigation with categories and entry links */
@@ -81,7 +95,7 @@ function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title
 				</div>
 			</SidebarHeader>
 			<SidebarContent className="pb-16">
-				{sidebar.map((category) => (
+				{flattenCategories(sidebar).map((category) => (
 					<SidebarGroup key={category.label}>
 						<SidebarGroupLabel className="text-xs font-semibold tracking-wider uppercase">
 							{category.label}
