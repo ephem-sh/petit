@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.16 (2026-03-19)
+
+- fix: clone user favicon on scaffold to correct public folder
+
+
 ## 0.1.15 (2026-03-19)
 
 - feat: updated docs and skills for the new updated frontmatter config, modified core package to support updated on frontmatter
