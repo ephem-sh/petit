@@ -68,6 +68,16 @@ export async function scaffoldPetitApp(opts: {
 		cpSync(opts.config.mediaRoot, destMedia, { recursive: true })
 	}
 
+	// Override default favicon with user's favicon if present
+	const publicDir = path.join(petitDir, "public")
+	for (const candidate of ["favicon.ico", "favicon.png", "favicon.svg"]) {
+		const userFavicon = path.join(opts.config.mediaRoot, candidate)
+		if (existsSync(userFavicon)) {
+			cpSync(userFavicon, path.join(publicDir, candidate))
+			break
+		}
+	}
+
 	const fromDep = (name: string): string => petitPkg.dependencies[name] ?? "latest"
 
 	const deps: Record<string, string> = {

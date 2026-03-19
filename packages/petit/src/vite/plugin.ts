@@ -340,7 +340,7 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				case "config": {
 					const theme = getTheme(state.config.theme)
 					let favicon: string | null = null
-					for (const candidate of ["favicon.ico", "favicon.png", "logo.png"]) {
+					for (const candidate of ["favicon.ico", "favicon.png", "favicon.svg", "logo.png"]) {
 						const userFavicon = path.join(state.config.mediaRoot, candidate)
 						if (existsSync(userFavicon)) {
 							favicon = `/${candidate}`
@@ -472,13 +472,14 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				if (!state || !req.url) return next()
 				const url = req.url.replace(/^\//, "")
 
-				if (url === "favicon.ico" || url === "favicon.png" || url === "logo.png") {
+				if (url === "favicon.ico" || url === "favicon.png" || url === "favicon.svg" || url === "logo.png") {
 					const faviconPath = path.join(state.config.mediaRoot, url)
 					if (existsSync(faviconPath)) {
 						const ext = path.extname(url).toLowerCase()
 						const mimeTypes: Record<string, string> = {
 							".ico": "image/x-icon",
 							".png": "image/png",
+							".svg": "image/svg+xml",
 						}
 						res.setHeader("Content-Type", mimeTypes[ext] || "application/octet-stream")
 						res.end(readFileSync(faviconPath))
@@ -488,7 +489,7 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 
 				if (url === "manifest.json") {
 					let favicon: string | null = null
-					for (const candidate of ["favicon.ico", "favicon.png", "logo.png"]) {
+					for (const candidate of ["favicon.ico", "favicon.png", "favicon.svg", "logo.png"]) {
 						if (existsSync(path.join(state.config.mediaRoot, candidate))) {
 							favicon = `/${candidate}`
 							break
