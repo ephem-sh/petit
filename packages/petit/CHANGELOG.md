@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.17 (2026-03-19)
+
+- feat: add github icon and move theme switcher, fix allowlist for vite on dev mode
+
+
 ## 0.1.16 (2026-03-19)
 
 - fix: clone user favicon on scaffold to correct public folder
