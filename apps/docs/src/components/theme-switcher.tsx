@@ -14,7 +14,7 @@ function ThemeSwitcher() {
 			onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
 			aria-label={`Switch theme (current: ${resolvedTheme})`}
 		>
-			<Icon className="size-4" />
+			<Icon className="size-4" weight="fill" />
 		</Button>
 	)
 }

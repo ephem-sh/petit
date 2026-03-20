@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router"
-import { MagnifyingGlass } from "@phosphor-icons/react"
+import { MagnifyingGlassIcon, GithubLogoIcon } from "@phosphor-icons/react"
 import { Button } from "@workspace/ui/components/button"
 import {
 	Sidebar,
@@ -49,6 +49,8 @@ interface SidebarProps {
 	side?: "left" | "right"
 	/** Show "Created with petit" credit link */
 	credits: boolean
+	/** Repository URL for GitHub link */
+	repository?: string | null
 }
 
 /** Flatten categories and their children into a flat list for rendering */
@@ -64,7 +66,7 @@ function flattenCategories(categories: SidebarCategoryItem[]): SidebarCategoryIt
 }
 
 /** Sidebar navigation with categories and entry links */
-function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, logo, logoDark, side, credits }: SidebarProps) {
+function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title, logo, logoDark, side, credits, repository }: SidebarProps) {
 	return (
 		<Sidebar side={side}>
 			<SidebarHeader className="p-4">
@@ -78,22 +80,35 @@ function DocsSidebar({ sidebar, currentSlug, onSearchOpen, schemeSwitcher, title
 						title
 					)}
 				</Link>
-				<div className="flex items-center gap-2">
+				<div className="flex flex-col gap-2">
 					<Button
 						variant="outline"
-						className="h-8 flex-1 justify-between text-muted-foreground rounded-full"
+						className="h-8 w-full justify-between text-muted-foreground rounded-full"
 						onClick={onSearchOpen}
 						aria-label="Search documentation"
 					>
 						<span className="flex items-center gap-2">
-							<MagnifyingGlass className="size-3.5" />
+							<MagnifyingGlassIcon className="size-3.5" />
 							<span className="text-xs">Search...</span>
 						</span>
 						<kbd className="pointer-events-none inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
 							<span className="text-[11px]">&#8984;</span>K
 						</kbd>
 					</Button>
-					{schemeSwitcher && <ThemeSwitcher />}
+          <div className="flex items-center gap-1">
+            {schemeSwitcher && <ThemeSwitcher />}
+						{repository && (
+							<a
+								href={repository}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+							>
+								<GithubLogoIcon className="size-3.5" weight="fill" />
+								<span>GitHub</span>
+							</a>
+						)}
+					</div>
 				</div>
 			</SidebarHeader>
 			<SidebarContent className="pb-16">

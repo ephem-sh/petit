@@ -177,9 +177,12 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 			raw: parsed.raw,
 			frontmatter: parsed.frontmatter,
 			headings: parsed.headings,
-			filePath: repoRoot
-				? path.relative(repoRoot, entry.filePath).replace(/\\/g, "/")
-				: path.relative(config.docsRoot, entry.filePath).replace(/\\/g, "/"),
+			filePath: (() => {
+				const rel = repoRoot
+					? path.relative(repoRoot, entry.filePath).replace(/\\/g, "/")
+					: path.relative(config.docsRoot, entry.filePath).replace(/\\/g, "/")
+				return rel.replace(/^\.petit\//, "")
+			})(),
 			lastModified,
 		}
 	}
@@ -294,10 +297,11 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				}
 				dir = path.dirname(dir)
 			}
-			// Local dev (not inside node_modules): allow dist/ and monorepo node_modules
+			// Local dev (not inside node_modules): allow repo root, dist/, and node_modules
 			const repoRoot = findRepoRoot(distDir)
 			const allow = [distDir]
 			if (repoRoot) {
+				allow.push(repoRoot)
 				const nm = path.join(repoRoot, "node_modules")
 				if (existsSync(nm)) allow.push(nm)
 			}
