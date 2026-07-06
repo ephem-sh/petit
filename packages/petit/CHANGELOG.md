@@ -1,5 +1,12 @@
 # Changelog
 
+All notable changes to this project are documented here.
+This file is generated from Conventional Commit messages.
+
+## [Unreleased]
+
+_Nothing yet._
+
 ## 0.2.0 (2026-07-06)
 
 - chore: add headless --yes flag to release script
@@ -116,4 +123,3 @@
 ## 0.1.1 (2026-03-17)
 
 - chore: first commit, core pre 0.1.0
-

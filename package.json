@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
+    "changelog": "bun run scripts/changelog.ts",
     "release": "bun run scripts/release.ts"
   },
   "devDependencies": {

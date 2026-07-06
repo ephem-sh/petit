@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import { resolve } from "node:path";
+import { lastReleaseRef, getCommits, promoteRelease, CHANGELOGS, PETIT_PATH } from "./changelog.ts";
 
 type BumpType = "patch" | "minor" | "major";
 
@@ -44,58 +45,12 @@ async function git(...args: string[]): Promise<string> {
   return text.trim();
 }
 
-async function getCommitsSince(prefix: string): Promise<string[]> {
-  const lastRelease = await git(
-    "log",
-    "--all",
-    "--format=%H",
-    `--grep=${prefix}:`,
-    "-1",
-  );
-
-  const range = lastRelease ? `${lastRelease}..HEAD` : "HEAD";
-  const log = await git(
-    "log",
-    range,
-    "--format=%s",
-    "--no-merges",
-  );
-
-  return log ? log.split("\n").filter(Boolean) : [];
-}
-
 function formatDate(): string {
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-
-async function prependChangelog(
-  pkg: PackageConfig,
-  version: string,
-  commits: string[],
-): Promise<void> {
-  const changelogPath = resolve(ROOT, pkg.dir, "CHANGELOG.md");
-  const file = Bun.file(changelogPath);
-
-  const existing = (await file.exists()) ? await file.text() : "# Changelog\n";
-
-  const entry = [
-    `## ${version} (${formatDate()})`,
-    "",
-    ...(commits.length > 0
-      ? commits.map((c) => `- ${c}`)
-      : ["- Version bump"]),
-    "",
-  ].join("\n");
-
-  const headerEnd = existing.indexOf("\n") + 1;
-  const updated =
-    existing.slice(0, headerEnd) + "\n" + entry + "\n" + existing.slice(headerEnd);
-
-  await Bun.write(changelogPath, updated);
 }
 
 async function confirm(message: string): Promise<boolean> {
@@ -117,18 +72,21 @@ async function releasePackage(
   const pkgJson = await Bun.file(pkgJsonPath).json();
   const currentVersion: string = pkgJson.version;
   const nextVersion = bumpVersion(currentVersion, bump);
-  const commits = await getCommitsSince(pkg.commitPrefix);
+
+  // Root changelog gets every commit; the package changelog gets only commits
+  // that touched the package.
+  const since = await lastReleaseRef();
+  const rootCommits = await getCommits(since);
+  const petitCommits = await getCommits(since, PETIT_PATH);
 
   console.log(`\n--- ${pkg.displayName} ---`);
   console.log(`  ${currentVersion} -> ${nextVersion} (${bump})`);
-  console.log(`  ${commits.length} commit(s) since last release`);
-  if (commits.length > 0) {
-    for (const c of commits.slice(0, 20)) {
-      console.log(`    - ${c}`);
-    }
-    if (commits.length > 20) {
-      console.log(`    ... and ${commits.length - 20} more`);
-    }
+  console.log(`  ${petitCommits.length} package commit(s), ${rootCommits.length} repo commit(s) since last release`);
+  for (const c of petitCommits.slice(0, 20)) {
+    console.log(`    - ${c.type}${c.scope ? `(${c.scope})` : ""}: ${c.subject}`);
+  }
+  if (petitCommits.length > 20) {
+    console.log(`    ... and ${petitCommits.length - 20} more`);
   }
 
   if (dry) {
@@ -145,10 +103,11 @@ async function releasePackage(
   pkgJson.version = nextVersion;
   await Bun.write(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
 
-  await prependChangelog(pkg, nextVersion, commits);
+  const date = formatDate();
+  promoteRelease(CHANGELOGS.petit, nextVersion, date, petitCommits);
+  promoteRelease(CHANGELOGS.root, nextVersion, date, rootCommits);
 
-  const changelogPath = resolve(ROOT, pkg.dir, "CHANGELOG.md");
-  await git("add", pkgJsonPath, changelogPath);
+  await git("add", pkgJsonPath, CHANGELOGS.petit, CHANGELOGS.root);
   await git("commit", "-m", `${pkg.commitPrefix}: v${nextVersion}`);
 
   console.log(`  Released ${pkg.displayName}@${nextVersion}`);

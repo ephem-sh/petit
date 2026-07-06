@@ -58,8 +58,18 @@ jobs:
       - run: cd packages/petit && npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Extract release notes from CHANGELOG
+        run: |
+          # Print the first version section of the package changelog (between
+          # the first "## [x.y.z]" heading and the next "## " heading).
+          awk '
+            /^## \[[0-9]/ { if (seen) exit; seen=1; print; next }
+            seen && /^## / { exit }
+            seen { print }
+          ' packages/petit/CHANGELOG.md > RELEASE_NOTES.md
+          echo "--- release notes ---"; cat RELEASE_NOTES.md
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check.outputs.version }}
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
