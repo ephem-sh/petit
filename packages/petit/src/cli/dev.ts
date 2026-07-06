@@ -45,6 +45,12 @@ export const devCommand = defineCommand({
 			description: "Show startup performance timings",
 			required: false,
 		},
+		verbose: {
+			type: "boolean",
+			description: "Show internal [petit] logs (HMR rebuilds, watcher events)",
+			alias: "v",
+			required: false,
+		},
 	},
 	async run({ args }) {
 		const userCwd = process.cwd()
@@ -90,6 +96,12 @@ export const devCommand = defineCommand({
 		// Parse vite/plugin stdout, show our own output
 		child.stdout?.on("data", (data: Buffer) => {
 			const text = data.toString()
+			// --verbose: dump everything raw (vite, dep-optimize, HMR, plugin
+			// internals) with no filtering, for debugging the whole process.
+			if (args.verbose) {
+				process.stdout.write(text)
+				return
+			}
 			for (const line of text.split("\n")) {
 				const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim()
 
@@ -131,9 +143,13 @@ export const devCommand = defineCommand({
 			}
 		})
 
-		// Show errors from stderr, filtering noise
+		// Show errors from stderr, filtering noise (raw passthrough when --verbose)
 		child.stderr?.on("data", (data: Buffer) => {
 			const text = data.toString()
+			if (args.verbose) {
+				process.stderr.write(text)
+				return
+			}
 			for (const line of text.split("\n")) {
 				const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim()
 				// Skip deprecation warnings
