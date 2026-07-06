@@ -607,13 +607,27 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				next()
 			})
 
-			// Watch docs directory and config file for changes.
+			// Watch the configured docs directories, media, and config file.
 			// Use an independent chokidar watcher instead of server.watcher
 			// because when petit runs via npx/bunx, the Vite root is in a
 			// temp directory and server.watcher silently ignores paths outside it.
-			const watcher = watch([docsRoot, configPath], {
+			//
+			// Watch only the doc/media directories, NOT docsRoot (the project
+			// root): that would recursively include node_modules and other
+			// large trees, overwhelming the watcher and causing missed HMR
+			// updates. awaitWriteFinish makes atomic saves (editors that write
+			// to a temp file then rename, e.g. VS Code) reliably trigger a
+			// rebuild instead of being silently dropped.
+			const watchTargets = new Set<string>([configPath])
+			for (const item of state.config.sidebar) {
+				if (item.path) watchTargets.add(path.resolve(docsRoot, item.path))
+			}
+			if (existsSync(mediaRoot)) watchTargets.add(mediaRoot)
+
+			const watcher = watch([...watchTargets], {
 				ignoreInitial: true,
-				ignored: /(^|[\/\\])\../, // ignore dotfiles
+				ignored: (p: string) => /[/\\](node_modules|\.git|\.petit|\.output|dist|\.vite)([/\\]|$)/.test(p),
+				awaitWriteFinish: { stabilityThreshold: 100, pollInterval: 20 },
 			})
 
 			let debounceTimer: ReturnType<typeof setTimeout> | null = null
