@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 (2026-07-06)
+
+- chore: add headless --yes flag to release script
+- feat(skills): rename petit-writer skill for skills.sh install
+- docs: correct llms/seo reference and document dev flags
+- feat(cli): add --verbose flag to petit dev
+- perf(dev): persist Vite dep cache, repeat npx dev ~18s to ~11s
+- fix(dev): scope HMR watcher to doc dirs for reliable hot reload
+- feat(seo): serve llms in both .txt and .md, carry real frontmatter
+
+
 ## 0.1.17 (2026-03-19)
 
 - feat: add github icon and move theme switcher, fix allowlist for vite on dev mode
