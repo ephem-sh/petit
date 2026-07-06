@@ -111,6 +111,7 @@ async function releasePackage(
   pkg: PackageConfig,
   bump: BumpType,
   dry: boolean,
+  skipConfirm: boolean,
 ): Promise<boolean> {
   const pkgJsonPath = resolve(ROOT, pkg.versionFile);
   const pkgJson = await Bun.file(pkgJsonPath).json();
@@ -135,7 +136,7 @@ async function releasePackage(
     return false;
   }
 
-  const ok = await confirm(`  Release ${pkg.displayName}@${nextVersion}?`);
+  const ok = skipConfirm || (await confirm(`  Release ${pkg.displayName}@${nextVersion}?`));
   if (!ok) {
     console.log("  Skipped.");
     return false;
@@ -159,6 +160,7 @@ async function main(): Promise<void> {
     args: Bun.argv.slice(2),
     options: {
       dry: { type: "boolean", default: false },
+      yes: { type: "boolean", short: "y", default: false },
     },
     allowPositionals: true,
     strict: true,
@@ -178,6 +180,7 @@ async function main(): Promise<void> {
   }
 
   const dry = values.dry ?? false;
+  const skipConfirm = values.yes ?? false;
 
   const targets =
     target === "all"
@@ -192,7 +195,7 @@ async function main(): Promise<void> {
 
   let released = 0;
   for (const [name, pkg] of targets) {
-    const did = await releasePackage(name as string, pkg as PackageConfig, bump, dry);
+    const did = await releasePackage(name as string, pkg as PackageConfig, bump, dry, skipConfirm);
     if (did) released++;
   }
 
