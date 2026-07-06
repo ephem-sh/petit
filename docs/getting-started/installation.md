@@ -2,7 +2,7 @@
 title: Installation
 description: Set up a new documentation project with Petit
 order: 2
-updated: 2026-03-19
+updated: 2026-07-06
 ---
 
 Petit requires Node.js 24 or later. It works with any project
@@ -119,3 +119,16 @@ All commands run from your project root:
 
 `init` and `config` ask for confirmation before creating
 files. Pass `--yes` to skip the prompt.
+
+### dev flags
+
+| Flag | Description |
+|------|-------------|
+| `--port <n>` | Port to listen on (default `4321`) |
+| `--verbose`, `-v` | Stream the full raw output (Vite, dependency optimization, HMR rebuilds, plugin internals). Use it to debug why a change is not picked up or why startup is slow |
+| `--profiling` | Print startup performance timings |
+| `--config <path>` | Use a specific config file |
+
+Normal output is filtered to the essentials. When something
+looks wrong, `--verbose` shows everything the dev server is
+doing under the hood.

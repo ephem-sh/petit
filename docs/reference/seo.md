@@ -2,7 +2,7 @@
 title: Programmatic SEO
 description: Automatic search engine optimization for your documentation
 order: 2
-updated: 2026-03-19
+updated: 2026-07-06
 ---
 
 Petit generates comprehensive SEO metadata and Open Graph images
@@ -85,9 +85,10 @@ Images are written to `public/og/{slug}.png`. Slashes in the slug
 become dashes, for example `getting-started/overview` produces
 `public/og/getting-started-overview.png`.
 
-OG image generation is skipped in dev mode because it's too slow
-for the development feedback loop. The meta tags still render with
-the correct image URLs so you can verify your markup.
+In dev mode, OG images are generated on demand, rendered per request
+by Vite middleware when `/og/{slug}.png` is requested. During build
+they are pre-generated as static files so they are served directly in
+production.
 
 ## Sitemap and robots.txt
 
