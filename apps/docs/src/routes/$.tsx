@@ -1,4 +1,4 @@
-import { createFileRoute, Link, type LinkProps } from "@tanstack/react-router"
+import { createFileRoute, Link, Navigate, type LinkProps } from "@tanstack/react-router"
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { config } from "virtual:petit/config"
 import { docs } from "virtual:petit/docs"
@@ -92,6 +92,15 @@ function DocPage() {
 	const doc = slug ? docs[slug] : undefined
 
 	if (!doc) {
+		const trimmedSlug = (slug ?? "").replace(/\/+$/, "")
+		const child = trimmedSlug
+			? allEntries.find((e) => e.slug !== trimmedSlug && e.slug.startsWith(trimmedSlug + "/"))
+			: undefined
+
+		if (child && child.slug !== slug) {
+			return <Navigate to={("/" + child.slug) as LinkProps["to"]} />
+		}
+
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center p-8">
 				<div className="max-w-md text-center space-y-3">
