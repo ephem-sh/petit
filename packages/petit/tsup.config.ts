@@ -178,6 +178,8 @@ export default defineConfig({
 		writeFileSync(
 			join(appDest, "vite.config.ts"),
 			`import path from "node:path"
+import os from "node:os"
+import crypto from "node:crypto"
 import { fileURLToPath } from "node:url"
 import { defineConfig } from "vite"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
@@ -188,7 +190,19 @@ import { petitPlugin } from "../vite/plugin.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Persist Vite's dependency pre-bundle cache in a stable per-project temp
+// directory so it survives across runs. When petit runs via npx/bunx the app
+// dir is ephemeral, so the default cache (node_modules/.vite next to the app)
+// is discarded every run, forcing a cold dependency optimize (~6s) on every
+// start. Keying by the user's project path keeps the cache warm across runs
+// while isolating separate projects. Vite invalidates it internally when the
+// resolved dependencies or config change.
+const petitUserCwd = process.env.PETIT_USER_CWD || process.cwd()
+const petitCacheKey = crypto.createHash("md5").update(petitUserCwd).digest("hex").slice(0, 12)
+const petitCacheDir = path.join(os.tmpdir(), "petit-vite-cache", petitCacheKey)
+
 export default defineConfig({
+  cacheDir: petitCacheDir,
   plugins: [
     petitPlugin({
       configPath: process.env.PETIT_CONFIG_PATH,
