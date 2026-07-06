@@ -13,20 +13,29 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - id: check
+        # Pass commit messages through the environment, never inlined into the
+        # script. Message bodies contain apostrophes and parentheses (e.g.
+        # "feat(seo):", "page's") that break a quoted shell literal and caused
+        # a syntax error in the previous version.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          COMMIT_MESSAGES: ${{ toJSON(github.event.commits.*.message) }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "publish=true" >> $GITHUB_OUTPUT
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
             VERSION=$(node -e "console.log(require('./packages/petit/package.json').version)")
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          COMMITS='${{ toJSON(github.event.commits.*.message) }}'
-          VERSION=$(echo "$COMMITS" | sed -n 's/.*release(petit): v\([0-9.]*\).*/\1/p' | tail -1)
+          VERSION=$(printf '%s' "$COMMIT_MESSAGES" \
+            | grep -oE 'release\(petit\): v[0-9]+\.[0-9]+\.[0-9]+' \
+            | tail -1 \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
           if [[ -n "$VERSION" ]]; then
-            echo "publish=true" >> $GITHUB_OUTPUT
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "publish=false" >> $GITHUB_OUTPUT
+            echo "publish=false" >> "$GITHUB_OUTPUT"
           fi
 
   publish:
