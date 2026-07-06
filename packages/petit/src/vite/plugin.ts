@@ -14,6 +14,7 @@ import { generateThemeCSS, generateProseCSS } from "../themes/generate-css"
 import { buildSearchIndex, stripHtml } from "../search/indexer"
 import type { SerializedSearchIndex } from "../search/types"
 import { loadCache, saveCache, isCached, getCached, setCached } from "../cache/index"
+import { generateLlmsTxt, generateLlmsFullMd } from "../seo/llms"
 
 /** Profiling timer - only logs when PETIT_PROFILING env is set */
 const profiling = process.env.PETIT_PROFILING === "1"
@@ -524,48 +525,26 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 				if (!state || !req.url) return next()
 				const url = decodeURIComponent(req.url).replace(/^\//, "")
 
-				// llms-full.md — all docs concatenated
-				if (url === "llms-full.md") {
-					const sections: string[] = [`# ${state.config.title} — Full Documentation`, ""]
-					for (const cat of state.sidebar) {
-						sections.push(`## ${cat.label}`, "")
-						for (const entry of cat.entries) {
-							if (entry.draft) continue
-							const doc = state.docs[entry.slug]
-							if (!doc) continue
-							const title = doc.frontmatter.title ?? entry.label
-							sections.push(`### ${title}`)
-							if (doc.frontmatter.description) {
-								sections.push("", `> ${doc.frontmatter.description}`)
-							}
-							sections.push("", doc.raw.trim(), "", "---", "")
-						}
-					}
-					res.setHeader("Content-Type", "text/markdown; charset=utf-8")
-					res.end(sections.join("\n"))
+				// llms-full.txt / llms-full.md — all docs concatenated (identical bytes)
+				if (url === "llms-full.txt" || url === "llms-full.md") {
+					const body = generateLlmsFullMd(state.sidebar, state.docs, state.config.title)
+					res.setHeader(
+						"Content-Type",
+						url.endsWith(".md") ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8",
+					)
+					res.end(body)
 					return
 				}
 
-				// llms.txt — LLM discoverability index
-				if (url === "llms.txt") {
-					const base = state.config.siteUrl?.replace(/\/$/, "") ?? ""
-					const lines: string[] = [
-						`# ${state.config.title}`,
-						"",
-						`> ${state.config.title} documentation`,
-						"",
-						"## Docs",
-						"",
-					]
-					for (const cat of state.sidebar) {
-						for (const entry of cat.entries) {
-							if (entry.draft) continue
-							lines.push(`- [${entry.label}](${base}/${entry.slug}.md)`)
-						}
-					}
-					lines.push("")
-					res.setHeader("Content-Type", "text/plain; charset=utf-8")
-					res.end(lines.join("\n"))
+				// llms.txt / llms.md — LLM discoverability index with matching cross-links
+				if (url === "llms.txt" || url === "llms.md") {
+					const ext = url.endsWith(".md") ? "md" : "txt"
+					const body = generateLlmsTxt(state.sidebar, state.config.siteUrl ?? "", state.config.title, ext)
+					res.setHeader(
+						"Content-Type",
+						ext === "md" ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8",
+					)
+					res.end(body)
 					return
 				}
 
@@ -601,9 +580,10 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 					}
 				}
 
-				// Individual .md files — {slug}.md serves raw markdown
-				if (url.endsWith(".md")) {
-					const slug = url.slice(0, -3)
+				// Individual .md / .txt files — {slug}.md and {slug}.txt serve raw markdown
+				if (url.endsWith(".md") || url.endsWith(".txt")) {
+					const isTxt = url.endsWith(".txt")
+					const slug = url.slice(0, -(isTxt ? 4 : 3))
 					const doc = state.docs[slug]
 					if (doc) {
 						const parts: string[] = []
@@ -615,7 +595,10 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 							parts.push("")
 						}
 						parts.push(doc.raw.trim(), "")
-						res.setHeader("Content-Type", "text/markdown; charset=utf-8")
+						res.setHeader(
+							"Content-Type",
+							isTxt ? "text/plain; charset=utf-8" : "text/markdown; charset=utf-8",
+						)
 						res.end(parts.join("\n"))
 						return
 					}

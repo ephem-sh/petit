@@ -46,6 +46,7 @@ export const buildCommand = defineCommand({
 		const theme = getTheme(config.theme)
 		const searchDocs: SearchDocument[] = []
 		const rawDocs: Record<string, string> = {}
+		const frontmatters: Record<string, { title?: string; description?: string }> = {}
 
 		const totalEntries = sidebar.reduce((sum, cat) => sum + cat.entries.filter(e => !e.draft).length, 0)
 		log.info(`${config.title}`)
@@ -58,6 +59,10 @@ export const buildCommand = defineCommand({
 				const slugDir = entry.slug.includes("/") ? entry.slug.slice(0, entry.slug.lastIndexOf("/")) : ""
 				const parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
 				rawDocs[entry.slug] = parsed.raw
+				frontmatters[entry.slug] = {
+					title: parsed.frontmatter.title ?? entry.label,
+					description: parsed.frontmatter.description,
+				}
 
 				searchDocs.push({
 					slug: entry.slug,
@@ -97,8 +102,11 @@ export const buildCommand = defineCommand({
 			const robotsTxt = generateRobots(config.siteUrl)
 			writeFileSync(path.join(publicDir, "robots.txt"), robotsTxt, "utf-8")
 
-			const llmsTxt = generateLlmsTxt(sidebar, config.siteUrl, config.title)
+			const llmsTxt = generateLlmsTxt(sidebar, config.siteUrl, config.title, "txt")
 			writeFileSync(path.join(publicDir, "llms.txt"), llmsTxt, "utf-8")
+
+			const llmsMd = generateLlmsTxt(sidebar, config.siteUrl, config.title, "md")
+			writeFileSync(path.join(publicDir, "llms.md"), llmsMd, "utf-8")
 
 			const docsWithRaw: Record<string, { raw: string; frontmatter: { title?: string; description?: string } }> = {}
 			for (const category of sidebar) {
@@ -106,12 +114,13 @@ export const buildCommand = defineCommand({
 					if (entry.draft) continue
 					docsWithRaw[entry.slug] = {
 						raw: rawDocs[entry.slug] ?? "",
-						frontmatter: { title: entry.label },
+						frontmatter: frontmatters[entry.slug] ?? { title: entry.label },
 					}
 				}
 			}
 
 			const llmsFullMd = generateLlmsFullMd(sidebar, docsWithRaw, config.title)
+			writeFileSync(path.join(publicDir, "llms-full.txt"), llmsFullMd, "utf-8")
 			writeFileSync(path.join(publicDir, "llms-full.md"), llmsFullMd, "utf-8")
 
 			writeMarkdownFiles(sidebar, docsWithRaw, publicDir)
@@ -122,7 +131,7 @@ export const buildCommand = defineCommand({
 					sidebar,
 					docs: Object.fromEntries(
 						sidebar.flatMap(cat =>
-							cat.entries.filter(e => !e.draft).map(e => [e.slug, { frontmatter: { title: e.label } }])
+							cat.entries.filter(e => !e.draft).map(e => [e.slug, { frontmatter: frontmatters[e.slug] ?? { title: e.label } }])
 						),
 					) as Record<string, { frontmatter: { title?: string; description?: string } }>,
 					siteName: config.title,
