@@ -2,7 +2,7 @@
 title: SKILL.md
 description: Use the petit-writer skill with Claude Code to generate and maintain documentation
 order: 5
-updated: 2026-03-19
+updated: 2026-07-06
 ---
 
 Petit ships with a agentic skill called `petit-writer` that
@@ -29,24 +29,50 @@ docs, configure your project, or set up Petit in a new repo.
 
 ## Install
 
-The skill files live in the `skills/petit-writer/` directory of the
-Petit repository. Copy them into your project's `.agents/skills/` or `.claude/skills`
-directory:
+The fastest way to install the skill is with the [skills.sh](https://skills.sh)
+CLI. It is cross-agent: it works with Claude Code, Codex, Cursor,
+Windsurf, and 68+ other agents. It auto-detects the agents you have
+installed and installs the `petit-writer` skill into each agent's
+skills directory for you.
+
+```command live
+skills add ephem-sh/petit
+```
+
+Add `-g` to install globally so the skill is available in every project.
+To update to the latest version later, run:
+
+```command live
+skills update petit-writer
+```
+
+### Direct path
+
+You can also point skills.sh straight at the skill directory in the
+repository:
+
+```command live
+skills add https://github.com/ephem-sh/petit/tree/develop/skills/petit-writer
+```
+
+### Manual install
+
+If you prefer not to use the CLI, copy the `skills/petit-writer/`
+directory from the Petit repository into your agent's skills folder.
+For Claude Code that is `.claude/skills/` for a single project or
+`~/.claude/skills/` to make the skill global.
 
 ````steps
 # Copy the skill to your project
 
 Download or copy the `skills/petit-writer/` directory from the
-Petit repo into `.agents/skills/` or `.claude/skills` in your project:
+Petit repo into `.claude/skills/` in your project.
 
 # Verify the skill is available
 
 Open Claude Code in your project. Type `/petit-writer` and you will see
 the skill in the autocomplete list.
 ````
-
-To install the skill globally (available in all your projects),
-copy it to `~/.agents/skills/petit-writer/` or `~/.claude/skills/petit-writer/` instead.
 
 ## Usage
 

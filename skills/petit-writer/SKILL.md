@@ -1,5 +1,5 @@
 ---
-name: writer
+name: petit-writer
 description: Petit documentation framework expert. Use this skill when writing, reviewing, or editing documentation for any project using Petit. Also use when setting up Petit in a new or existing repository, configuring petit.config.json, writing markdown content with Petit components (tabs, callouts, cards, steps, accordion, type-table, install, command, mermaid, video), choosing or customizing themes, or troubleshooting Petit CLI commands (dev, build, init, export).
 ---
 
