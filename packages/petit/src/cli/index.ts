@@ -5,6 +5,7 @@ import { buildCommand } from "./build"
 import { initCommand } from "./init"
 import { configCommand } from "./config"
 import { exportCommand } from "./export"
+import { checkCommand } from "./check"
 
 /** Main CLI command for petit */
 const main = defineCommand({
@@ -25,6 +26,7 @@ const main = defineCommand({
 		init: initCommand,
 		config: configCommand,
 		export: exportCommand,
+		check: checkCommand,
 	},
 })
 
