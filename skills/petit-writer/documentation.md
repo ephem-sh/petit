@@ -153,3 +153,9 @@ and that all links are functional.
     start it. Run commands, capture real output. Use actual terminal
     output in the docs, not approximations. If you can't run it,
     explicitly state what you verified and what you could not.
+6.  **Petit verification:** Run `npx @ephem-sh/petit check --docs` to
+    validate the config, the sidebar, and every markdown file. It writes
+    nothing. Run `npx @ephem-sh/petit dev` when you need to see the
+    rendered pages. Never run `npx @ephem-sh/petit build` to test docs:
+    it installs dependencies and writes a `.petit/` build artifact into
+    the user's project.

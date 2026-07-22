@@ -251,13 +251,21 @@ project-root/
 
 ## Phase 5: Verify
 
-1. Run `npx @ephem-sh/petit dev` and navigate every page
-2. Run actual project commands and verify the output matches what
+1. Run `npx @ephem-sh/petit check --docs`. This validates the config,
+   the sidebar paths, and every markdown file without building or
+   writing anything. Fix every reported error before continuing.
+2. Run `npx @ephem-sh/petit dev` and navigate every page
+3. Run actual project commands and verify the output matches what
    the docs describe. Capture real terminal output for examples.
-3. Check sidebar order matches the intended learning path
-4. Verify all internal links work
-5. Verify all images render (both light and dark mode)
-6. Check code examples are syntax-highlighted correctly
-7. Test search - do key terms find the right pages?
-8. Run `npx @ephem-sh/petit build` and check for errors
-9. If `siteUrl` is set, verify OG images generate at `/og/{slug}.png`
+4. Check sidebar order matches the intended learning path
+5. Verify all internal links work
+6. Verify all images render (both light and dark mode)
+7. Check code examples are syntax-highlighted correctly
+8. Test search - do key terms find the right pages?
+9. If `siteUrl` is set, verify OG images at `/og/{slug}.png` in the dev
+   server (it serves them on demand)
+
+> **Warning:** Do not run `npx @ephem-sh/petit build` to confirm the setup
+> works. It runs a full dependency install and writes a `.petit/` build
+> artifact into the user's project. It is only for producing deploy output.
+> Use `check` and `dev` instead.

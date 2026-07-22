@@ -21,11 +21,30 @@ All commands accept `--config <path>` to specify config file location (e.g. `npx
 
 | Command | Description |
 |---------|-------------|
-| `npx @ephem-sh/petit dev` | Dev server at localhost:4321 (auto-increments if busy). Hot-reloads on .md/.mdx/config changes. |
-| `npx @ephem-sh/petit build` | Static build. Generates search index, SEO assets, optimized images. |
+| `npx @ephem-sh/petit check [--docs]` | Validates petit.config.json and sidebar/doc discovery. Writes nothing. `--docs` also parses every markdown file to catch content errors. |
+| `npx @ephem-sh/petit dev [--port <n>] [--verbose\|-v] [--profiling]` | Dev server at localhost:4321 (auto-increments if busy). Hot-reloads on .md/.mdx/config changes. Writes nothing into the project. |
+| `npx @ephem-sh/petit build` | Produces deploy output. Scaffolds a build workspace, runs a full dependency install, and writes a `.petit/` directory into the project. **Do not use for testing or verification.** |
 | `npx @ephem-sh/petit init [--yes]` | Scaffolds petit.config.json, docs/getting-started/overview.md, docs/media/. |
 | `npx @ephem-sh/petit config [--path <dir>] [--yes]` | Creates minimal petit.config.json only. |
 | `npx @ephem-sh/petit export [--output <file>]` | Single printable HTML of all pages (default: docs-export.html). |
+
+### Verifying changes
+
+Use `check` and `dev`, never `build`.
+
+1. Run `npx @ephem-sh/petit check` after any config change. It reports invalid fields, missing sidebar paths, and empty categories without building.
+2. Add `--docs` to parse every markdown file. Use this after content changes to catch frontmatter and component errors.
+3. Run `npx @ephem-sh/petit dev` when you need to see the rendered result: sidebar order, links, images, components, search.
+
+`build` is a deploy-artifact command. Running it to "test" installs dependencies and pollutes the user's repository with a `.petit/` directory. That directory holds an installed `node_modules` plus the build output, so it is large and must never be committed.
+
+If the user genuinely needs a local build, tell them to add it to `.gitignore` first:
+
+```gitignore
+.petit/
+```
+
+If you ever run `build` by mistake, remove the generated `.petit/` directory (or confirm it is gitignored) instead of leaving it in the user's project.
 
 ## Config (petit.config.json)
 
