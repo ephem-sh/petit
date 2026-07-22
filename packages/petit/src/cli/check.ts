@@ -13,6 +13,9 @@ import * as log from "./logger"
 
 const VERSION = createRequire(import.meta.url)("../../package.json").version as string
 
+/** Where users can read about every available config option */
+const CONFIG_DOCS_URL = "https://petit.ephem.sh/docs/getting-started/configuration"
+
 /** Flatten a category tree into a single list of entries */
 function collectEntries(category: SidebarCategory): SidebarEntry[] {
 	const entries = [...category.entries]
@@ -98,8 +101,25 @@ export const checkCommand = defineCommand({
 		}
 		log.info(`total ${totalDocs} document${totalDocs !== 1 ? "s" : ""}, ${totalDrafts} draft${totalDrafts !== 1 ? "s" : ""}`)
 
+		// Optional settings worth surfacing, with what each one unlocks. These
+		// are not problems: a local-only docs setup is perfectly valid without
+		// them, so they are reported as hints rather than warnings. Files petit
+		// generates for you (sitemap, robots.txt, llms.txt, OG images) are
+		// documented and deliberately not enumerated here.
+		const hints: Array<{ name: string; implication: string }> = []
+
 		if (!config.siteUrl) {
-			warnings.push("no siteUrl: sitemap, robots.txt, llms.txt/llms.md, llms-full and OG images are skipped at build time")
+			hints.push({
+				name: "siteUrl",
+				implication: "only needed when you deploy: enables absolute URLs and SEO output",
+			})
+		}
+
+		if (!config.repository) {
+			hints.push({
+				name: "repository",
+				implication: "adds source and edit links to each page",
+			})
 		}
 
 		const failures: { file: string; message: string }[] = []
@@ -126,6 +146,13 @@ export const checkCommand = defineCommand({
 			for (const warning of warnings) log.warn(warning)
 		}
 
+		if (hints.length > 0) {
+			log.line()
+			log.info("not configured")
+			const width = Math.max(...hints.map((h) => h.name.length))
+			for (const h of hints) log.detail(`${h.name.padEnd(width + 2)}${h.implication}`)
+		}
+
 		log.line()
 		if (failures.length > 0) {
 			for (const failure of failures) log.error(`${failure.file}: ${failure.message}`)
@@ -139,6 +166,7 @@ export const checkCommand = defineCommand({
 				? `config valid, ${totalDocs} document${totalDocs !== 1 ? "s" : ""} parsed`
 				: `config valid, ${totalDocs} document${totalDocs !== 1 ? "s" : ""}`,
 		)
+		log.link("all configuration options:", CONFIG_DOCS_URL)
 		log.line()
 	},
 })

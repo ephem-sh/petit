@@ -51,6 +51,16 @@ export function buildDone(outputDir: string, duration: string): void {
 	console.log()
 }
 
+/** Log an indented, dimmed detail line beneath an info heading */
+export function detail(msg: string): void {
+	console.log(`  ${DIM}|   ${msg}${RESET}`)
+}
+
+/** Log a dimmed label followed by a highlighted URL */
+export function link(label: string, url: string): void {
+	console.log(`  ${DIM}|${RESET} ${DIM}${label}${RESET} ${CYAN}${url}${RESET}`)
+}
+
 /** Print a horizontal line */
 export function line(): void {
 	console.log()
