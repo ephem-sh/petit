@@ -5,10 +5,25 @@ This file is generated from Conventional Commit messages.
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.3.0] - 2026-07-21
+
+### Features
+
+- **cli:** add petit check to validate config without building (cddc199)
+- **release:** generate root and package changelogs from commits (41c1bcf)
+
 ### Fixes
 
+- **dev:** allow every node_modules ancestor so pnpm dev works (dc65069)
 - **docs:** redirect orphaned section paths to first child page (928f8fd)
 - **ci:** stop shell injection breaking release version detection (2a1ef95)
+
+### Documentation
+
+- **skills:** steer petit-writer agents to check and dev, not build (407de42)
+- document petit check and gitignoring the .petit build output (da6e868)
 
 ## [0.2.0] - 2026-07-06
 

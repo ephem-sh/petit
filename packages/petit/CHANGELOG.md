@@ -7,6 +7,17 @@ This file is generated from Conventional Commit messages.
 
 _Nothing yet._
 
+## [0.3.0] - 2026-07-21
+
+### Features
+
+- **cli:** add petit check to validate config without building (cddc199)
+- **release:** generate root and package changelogs from commits (41c1bcf)
+
+### Fixes
+
+- **dev:** allow every node_modules ancestor so pnpm dev works (dc65069)
+
 ## 0.2.0 (2026-07-06)
 
 - chore: add headless --yes flag to release script
