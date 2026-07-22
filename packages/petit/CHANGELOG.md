@@ -7,6 +7,16 @@ This file is generated from Conventional Commit messages.
 
 _Nothing yet._
 
+## [0.3.1] - 2026-07-22
+
+### Features
+
+- **cli:** report unset options as hints in check, link config docs (c3fd238)
+
+### Fixes
+
+- **cli:** stop the sidebar scanner printing raw log output (75c4d0d)
+
 ## [0.3.0] - 2026-07-21
 
 ### Features
