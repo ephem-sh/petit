@@ -17,6 +17,18 @@ Petit scaffolds a `.petit/` workspace during the build with all
 required dependencies. You don't need a `package.json` or
 `node_modules` in your project.
 
+That workspace is written into your project directory and holds an
+installed `node_modules` plus the build output, so it is large. Add
+it to your `.gitignore` so it never lands in the repository:
+
+```gitignore .gitignore
+.petit/
+```
+
+Hosting platforms build in a fresh checkout, so this only matters
+when you run `build` locally. To verify docs without producing any
+artifacts, use `petit check` and `petit dev` instead.
+
 ## Deploy targets
 
 Set the `deploy` field in `petit.config.json` to match your

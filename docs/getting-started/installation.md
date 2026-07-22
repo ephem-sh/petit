@@ -113,12 +113,42 @@ All commands run from your project root:
 |---------|-------------|
 | `npx @ephem-sh/petit init` | Create config + docs/ starter |
 | `npx @ephem-sh/petit config` | Generate config file only |
+| `npx @ephem-sh/petit check` | Validate config and docs, writes nothing |
 | `npx @ephem-sh/petit dev` | Dev server with hot reload |
 | `npx @ephem-sh/petit build` | Build static production site |
 | `npx @ephem-sh/petit export` | Export as printable HTML |
 
 `init` and `config` ask for confirmation before creating
 files. Pass `--yes` to skip the prompt.
+
+### Checking your setup
+
+Use `check` to validate `petit.config.json`, the sidebar paths,
+and doc discovery without building anything:
+
+```command live
+@ephem-sh/petit check
+```
+
+Add `--docs` to also parse every markdown file and catch content
+errors. It reports invalid config fields, missing sidebar
+directories, and empty categories, and exits non-zero on failure.
+
+`check` and `dev` write nothing into your project, so they are the
+right way to verify a change.
+
+### Build output
+
+`build` is for producing deploy artifacts, not for testing. It
+scaffolds a `.petit/` workspace in your project, installs
+dependencies into it, and writes the build output there. That
+directory is large and should not be committed.
+
+If you run `build` locally, add it to your `.gitignore`:
+
+```gitignore .gitignore
+.petit/
+```
 
 ### dev flags
 
