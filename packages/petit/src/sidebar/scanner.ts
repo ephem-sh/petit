@@ -122,9 +122,10 @@ export async function scanSidebar(
 			category.label = item.label
 			categories.push(category)
 		} catch {
-			console.warn(
-				`[petit] sidebar directory not found, skipping: ${dirPath}`,
-			)
+			// Missing directory: fall back to an empty category. Stay silent
+			// here so callers own the reporting -- `petit check` already
+			// surfaces this as a styled warning, and printing from the scanner
+			// duplicated it and broke the CLI output format.
 			categories.push({ label: item.label, entries: [], depth: 0 })
 			continue
 		}
