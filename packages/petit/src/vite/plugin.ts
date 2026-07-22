@@ -291,13 +291,24 @@ export function petitPlugin(options: PetitPluginOptions = {}): Plugin {
 		config() {
 			const thisFile = fileURLToPath(import.meta.url)
 			const distDir = path.resolve(path.dirname(thisFile), "..")
+
+			// Collect EVERY node_modules ancestor, not just the nearest one.
+			// With npm/bun's flat layout the nearest one holds all dependencies,
+			// but under pnpm's isolated store the nearest is the package-private
+			// node_modules inside .pnpm/<pkg>/, which does NOT contain the other
+			// dependencies -- those live in sibling .pnpm/<dep>/node_modules
+			// directories. The outer node_modules that holds .pnpm covers them
+			// all, so keep walking and allow each level.
+			const nodeModulesDirs: string[] = []
 			let dir = path.dirname(thisFile)
 			while (dir !== path.dirname(dir)) {
-				if (path.basename(dir) === "node_modules") {
-					return { server: { fs: { allow: [dir] } } }
-				}
+				if (path.basename(dir) === "node_modules") nodeModulesDirs.push(dir)
 				dir = path.dirname(dir)
 			}
+			if (nodeModulesDirs.length > 0) {
+				return { server: { fs: { allow: nodeModulesDirs } } }
+			}
+
 			// Local dev (not inside node_modules): allow repo root, dist/, and node_modules
 			const repoRoot = findRepoRoot(distDir)
 			const allow = [distDir]
