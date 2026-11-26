@@ -7,6 +7,13 @@ This file is generated from Conventional Commit messages.
 
 _Nothing yet._
 
+## [0.4.0] - 2026-11-26
+
+### Fixes
+
+- **build:** pin scaffold deps, update to vite 8 and TanStack Start, scope Tailwind scan so SSR and client share one globals.css (a400601)
+- **markdown:** parse .md as CommonMark, print doc errors as file:line:col with a code frame, check parses docs by default (8391d65)
+
 ## [0.3.1] - 2026-07-22
 
 ### Features
