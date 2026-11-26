@@ -1,13 +1,24 @@
 import { existsSync, mkdirSync, writeFileSync, cpSync, rmSync, readFileSync } from "node:fs"
 import path from "node:path"
-import { createRequire } from "node:module"
 import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
+import { z } from "zod"
 import type { ResolvedConfig } from "../config/types"
 import * as log from "./logger"
 
-const require = createRequire(import.meta.url)
-const petitPkg = require("../../package.json") as { version: string; dependencies: Record<string, string> }
+/** Shape of `dist/dep-versions.json`, written by tsup.config.ts: package name to exact installed version. */
+const depVersionsSchema = z.record(z.string(), z.string())
+
+/** Read the exact versions this petit build was made with, returning a lookup that throws on a missing name. */
+function loadPinnedVersions(distDir: string): (name: string) => string {
+	const file = path.join(distDir, "dep-versions.json")
+	const versions = depVersionsSchema.parse(JSON.parse(readFileSync(file, "utf-8")))
+	return (name) => {
+		const version = versions[name]
+		if (version === undefined) throw new Error(`${name} has no pinned version in ${file}; rebuild @ephem-sh/petit`)
+		return version
+	}
+}
 
 /** Scaffold a `.petit/` build workspace by copying the bundled app template, config, docs, and media, then installing dependencies. */
 export async function scaffoldPetitApp(opts: {
@@ -78,10 +89,10 @@ export async function scaffoldPetitApp(opts: {
 		}
 	}
 
-	const fromDep = (name: string): string => petitPkg.dependencies[name] ?? "latest"
+	const fromDep = loadPinnedVersions(distDir)
 
 	const deps: Record<string, string> = {
-		"@ephem-sh/petit": `^${petitPkg.version}`,
+		"@ephem-sh/petit": fromDep("@ephem-sh/petit"),
 		"@tanstack/react-start": fromDep("@tanstack/react-start"),
 		"@tanstack/react-router": fromDep("@tanstack/react-router"),
 		"@tanstack/router-plugin": fromDep("@tanstack/router-plugin"),
@@ -110,18 +121,21 @@ export async function scaffoldPetitApp(opts: {
 
 	switch (opts.config.deploy) {
 		case "cloudflare":
-			deps["@cloudflare/vite-plugin"] = "latest"
-			deps["wrangler"] = "latest"
+			deps["@cloudflare/vite-plugin"] = fromDep("@cloudflare/vite-plugin")
+			deps["wrangler"] = fromDep("wrangler")
 			break
 		case "netlify":
-			deps["@netlify/vite-plugin-tanstack-start"] = "latest"
+			deps["@netlify/vite-plugin-tanstack-start"] = fromDep("@netlify/vite-plugin-tanstack-start")
 			break
 		case "node":
 		case "vercel":
 		case "bun":
-		default:
 			deps["nitro"] = fromDep("nitro")
 			break
+		default: {
+			const unhandled: never = opts.config.deploy
+			throw new Error(`unknown deploy target: ${String(unhandled)}`)
+		}
 	}
 
 	const pkgJson = {

@@ -1,6 +1,56 @@
 import { defineConfig } from "tsup"
-import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
-import { resolve, join, extname } from "node:path"
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { resolve, join, extname, dirname } from "node:path"
+import { z } from "zod"
+
+const petitManifestSchema = z.object({
+	name: z.string(),
+	version: z.string(),
+	dependencies: z.record(z.string(), z.string()),
+	devDependencies: z.record(z.string(), z.string()),
+})
+
+const installedManifestSchema = z.object({ version: z.string() })
+
+/**
+ * Version of a dependency as installed for this package, found the way Node
+ * resolves it: the nearest `node_modules/<name>/package.json` walking up from
+ * the package root. Throws when it is not installed.
+ */
+function installedVersion(name: string): string {
+	let dir = resolve(".")
+	for (;;) {
+		const manifest = join(dir, "node_modules", name, "package.json")
+		if (existsSync(manifest)) {
+			return installedManifestSchema.parse(JSON.parse(readFileSync(manifest, "utf-8"))).version
+		}
+		const parent = dirname(dir)
+		if (parent === dir) {
+			throw new Error(`[tsup] ${name} is not installed; run bun install at the repo root`)
+		}
+		dir = parent
+	}
+}
+
+/**
+ * Exact installed version of every dependency and devDependency of this
+ * package, plus this package's own version, so `petit build` writes pinned
+ * versions into the scaffolded `.petit/package.json`.
+ */
+function resolveDepVersions(): Record<string, string> {
+	const pkg = petitManifestSchema.parse(JSON.parse(readFileSync(resolve("package.json"), "utf-8")))
+	const versions: Record<string, string> = { [pkg.name]: pkg.version }
+	for (const name of [...Object.keys(pkg.dependencies), ...Object.keys(pkg.devDependencies)]) {
+		versions[name] = installedVersion(name)
+	}
+	return versions
+}
+
+/** Replace one exact substring, failing the build when the source no longer contains it. */
+function replaceOnce(source: string, search: string, replacement: string, file: string): string {
+	if (!source.includes(search)) throw new Error(`[tsup] expected ${JSON.stringify(search)} in ${file}`)
+	return source.replace(search, replacement)
+}
 
 /** Recursively rewrite import paths in all .ts/.tsx files under a directory */
 function rewriteImports(dir: string): void {
@@ -155,12 +205,23 @@ export default defineConfig({
 		let css = readFileSync(globalsCss, "utf-8")
 		// Remove @source directives that reference monorepo paths
 		css = css.replace(/@source\s+"[^"]*";\n?/g, "")
+		// Turn off automatic source detection. Its base is the Vite root (.petit/),
+		// which also holds the build output: each environment (client, then ssr or
+		// the worker) scans whatever the environments before it wrote there, so
+		// each emits a different globals css and the SSR <link> names a file the
+		// client build never produced. Only the app source below is scanned.
+		css = replaceOnce(css, '@import "tailwindcss";', '@import "tailwindcss" source(none);', globalsCss)
 		// Add correct @source directives for bundled app
-		css = css.replace(
+		css = replaceOnce(
+			css,
 			'@plugin "@tailwindcss/typography";',
 			'@plugin "@tailwindcss/typography";\n@source "../../**/*.{ts,tsx}";\n@source "../**/*.{ts,tsx}";',
+			globalsCss,
 		)
 		writeFileSync(globalsCss, css, "utf-8")
+
+		// Pin the scaffold's dependencies to the versions this build was made with
+		writeFileSync(resolve("dist/dep-versions.json"), JSON.stringify(resolveDepVersions(), null, "\t"), "utf-8")
 
 		// 6. Copy vite config templates to dist/vite-configs/
 		const viteConfigsSrc = resolve("src/vite-configs")
