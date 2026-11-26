@@ -251,7 +251,7 @@ project-root/
 
 ## Phase 5: Verify
 
-1. Run `npx @ephem-sh/petit check --docs`. This validates the config,
+1. Run `npx @ephem-sh/petit check`. This validates the config,
    the sidebar paths, and every markdown file without building or
    writing anything. Fix every reported error before continuing.
 2. Run `npx @ephem-sh/petit dev` and navigate every page

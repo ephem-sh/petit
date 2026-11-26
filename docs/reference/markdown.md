@@ -2,12 +2,40 @@
 title: Markdown
 description: Supported markdown features and syntax
 order: 1
-updated: 2026-03-17
+updated: 2026-11-26
 ---
 
 Petit supports standard markdown with GitHub Flavored Markdown
 extensions. All markdown files are processed through a
 remark/rehype pipeline with Shiki syntax highlighting.
+
+## Markdown and MDX
+
+Petit picks the syntax from the file extension:
+
+- `.md` files are CommonMark with GitHub Flavored Markdown. Raw
+  HTML passes through, and a line indented by four spaces is a
+  code block, so text like `<session>` inside it stays literal.
+- `.mdx` files add JSX. Every tag must close, and indented code
+  blocks are off, so use fenced code blocks instead.
+
+A file that fails to parse stops `petit build` and `petit check`
+with its path, line and column, and the lines around the error:
+
+```bash
+x docs/guide.mdx:10:1 Expected a closing tag for `<Foo>`
+   > 10 | <Foo>unclosed
+        | ^
+```
+
+In `petit dev` the broken page is reported and every other page
+keeps serving.
+
+> **Note:** Tailwind utility classes are generated only for the
+> classes Petit's own components use. A class you write in raw
+> HTML inside a markdown file, such as `<div class="mt-8">`, gets
+> no generated style. Use the built-in components or inline
+> `style` attributes instead.
 
 ## GitHub Flavored Markdown
 

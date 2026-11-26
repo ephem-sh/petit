@@ -2,7 +2,7 @@
 title: Installation
 description: Set up a new documentation project with Petit
 order: 2
-updated: 2026-07-06
+updated: 2026-11-26
 ---
 
 Petit requires Node.js 24 or later. It works with any project
@@ -130,8 +130,9 @@ and doc discovery without building anything:
 @ephem-sh/petit check
 ```
 
-Add `--docs` to also parse every markdown file and catch content
-errors. It reports invalid config fields, missing sidebar
+It also parses every markdown file and reports content errors as
+`file:line:column` with the lines around them. Pass `--no-docs` to
+skip that step. It reports invalid config fields, missing sidebar
 directories, and empty categories, and exits non-zero on failure.
 
 `check` and `dev` write nothing into your project, so they are the

@@ -40,7 +40,8 @@ The processing chain runs in this order:
 2. **remark-parse** turns markdown into an AST
 3. **remark-gfm** adds GitHub Flavored Markdown (tables,
    strikethrough, task lists)
-4. **remark-mdx** enables MDX syntax support
+4. **remark-mdx** enables MDX syntax support, for `.mdx` files only.
+   `.md` files stay CommonMark, so indented code blocks work
 5. **remark-rehype** converts the markdown AST to an HTML AST
 6. **rehype-slug** adds `id` attributes to headings
 7. **rehype-autolink-headings** makes headings clickable

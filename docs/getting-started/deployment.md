@@ -2,7 +2,7 @@
 title: Deployment
 description: Deploy your documentation to any hosting platform
 order: 4
-updated: 2026-03-18
+updated: 2026-11-26
 ---
 
 Petit builds your docs for any hosting platform. Set the `deploy`
@@ -15,7 +15,14 @@ build command.
 
 Petit scaffolds a `.petit/` workspace during the build with all
 required dependencies. You don't need a `package.json` or
-`node_modules` in your project.
+`node_modules` in your project. The workspace pins the exact
+versions of Vite, TanStack Start and the platform plugins that
+your Petit release was built and tested with, so a build installs
+the same set every time.
+
+The build parses every page before it installs anything. A page
+that fails to parse stops the build with its `file:line:column`,
+so run `petit check` first to catch content errors in seconds.
 
 That workspace is written into your project directory and holds an
 installed `node_modules` plus the build output, so it is large. Add

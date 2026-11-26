@@ -21,7 +21,7 @@ All commands accept `--config <path>` to specify config file location (e.g. `npx
 
 | Command | Description |
 |---------|-------------|
-| `npx @ephem-sh/petit check [--docs]` | Validates petit.config.json and sidebar/doc discovery. Writes nothing. `--docs` also parses every markdown file to catch content errors. |
+| `npx @ephem-sh/petit check [--no-docs]` | Validates petit.config.json, sidebar/doc discovery, and parses every markdown file to catch content errors. Writes nothing. `--no-docs` skips parsing. |
 | `npx @ephem-sh/petit dev [--port <n>] [--verbose\|-v] [--profiling]` | Dev server at localhost:4321 (auto-increments if busy). Hot-reloads on .md/.mdx/config changes. Writes nothing into the project. |
 | `npx @ephem-sh/petit build` | Produces deploy output. Scaffolds a build workspace, runs a full dependency install, and writes a `.petit/` directory into the project. **Do not use for testing or verification.** |
 | `npx @ephem-sh/petit init [--yes]` | Scaffolds petit.config.json, docs/getting-started/overview.md, docs/media/. |
@@ -33,7 +33,7 @@ All commands accept `--config <path>` to specify config file location (e.g. `npx
 Use `check` and `dev`, never `build`.
 
 1. Run `npx @ephem-sh/petit check` after any config change. It reports invalid fields, missing sidebar paths, and empty categories without building.
-2. Add `--docs` to parse every markdown file. Use this after content changes to catch frontmatter and component errors.
+2. `check` also parses every markdown file and prints each error as `file:line:column` with a code frame. Pass `--no-docs` to skip that.
 3. Run `npx @ephem-sh/petit dev` when you need to see the rendered result: sidebar order, links, images, components, search.
 
 `build` is a deploy-artifact command. Running it to "test" installs dependencies and pollutes the user's repository with a `.petit/` directory. That directory holds an installed `node_modules` plus the build output, so it is large and must never be committed.

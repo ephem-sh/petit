@@ -52,12 +52,20 @@ export const buildCommand = defineCommand({
 		log.info(`${config.title}`)
 		log.info(`${totalEntries} document${totalEntries !== 1 ? "s" : ""}, ${sidebar.length} categor${sidebar.length !== 1 ? "ies" : "y"}`)
 
+		const failures: unknown[] = []
+
 		for (const category of sidebar) {
 			for (const entry of category.entries) {
 				if (entry.draft) continue
 
 				const slugDir = entry.slug.includes("/") ? entry.slug.slice(0, entry.slug.lastIndexOf("/")) : ""
-				const parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
+				let parsed: Awaited<ReturnType<typeof parseDocument>>
+				try {
+					parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
+				} catch (err) {
+					failures.push(err)
+					continue
+				}
 				rawDocs[entry.slug] = parsed.raw
 				frontmatters[entry.slug] = {
 					title: parsed.frontmatter.title ?? entry.label,
@@ -85,6 +93,14 @@ export const buildCommand = defineCommand({
 					})
 				}
 			}
+		}
+
+		if (failures.length > 0) {
+			log.line()
+			for (const failure of failures) log.documentError(failure, userCwd)
+			log.error(`${failures.length} document${failures.length !== 1 ? "s" : ""} failed to parse`)
+			log.line()
+			process.exit(1)
 		}
 
 		await buildSearchIndex(searchDocs)

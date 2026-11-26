@@ -7,6 +7,7 @@ import { findConfigFile, loadConfig } from "../config/loader"
 import { scanSidebar } from "../sidebar/scanner"
 import type { SidebarCategory as ResolvedCategory, SidebarEntry } from "../sidebar/types"
 import { parseDocument } from "../markdown/parse"
+import { documentError } from "../cli/logger"
 import type { ResolvedConfig } from "../config/types"
 import type { ParsedDocument } from "../markdown/types"
 import { getTheme, getThemeNames } from "../themes"
@@ -165,7 +166,13 @@ async function buildState(configPath: string, useCache = true, userCwd?: string)
 			cacheHits++
 		} else {
 			const slugDir = entry.slug.includes("/") ? entry.slug.slice(0, entry.slug.lastIndexOf("/")) : ""
-			parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
+			try {
+				parsed = await parseDocument(entry.filePath, { shikiThemes: { light: theme.shiki.light, dark: theme.shiki.dark }, slugDir })
+			} catch (err) {
+				// One broken document must not take the others down: report it and serve the rest.
+				documentError(err, userCwd ?? config.docsRoot)
+				continue
+			}
 			if (useCache) setCached(cache, entry.filePath, fileContent, parsed)
 			cacheMisses++
 		}

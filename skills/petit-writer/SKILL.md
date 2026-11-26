@@ -24,7 +24,7 @@ Read only what you need for the task:
 4. **Execute.** Write content following documentation standards. Configure Petit following the reference exactly. Always set `updated: YYYY-MM-DD` in frontmatter with today's date (new pages and edited pages).
 5. **Verify.** Self-review for accuracy, formatting, link integrity, and consistency with existing docs. Then validate with the CLI:
    - `npx @ephem-sh/petit check` validates `petit.config.json` and sidebar/doc discovery without building or writing anything. This is the primary verification step for any config or content change.
-   - `npx @ephem-sh/petit check --docs` additionally parses every markdown file to catch content errors.
+   - `check` also parses every markdown file to catch content errors; `--no-docs` skips that.
    - `npx @ephem-sh/petit dev` when you need visual confirmation of the rendered output. It writes nothing into the user's project.
 
 > **Warning:** Never run `npx @ephem-sh/petit build` to verify or test. It scaffolds a build workspace, runs a full dependency install, and writes a `.petit/` build artifact into the user's project. It exists only to produce deploy output.

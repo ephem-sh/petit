@@ -42,8 +42,8 @@ export const checkCommand = defineCommand({
 		},
 		docs: {
 			type: "boolean",
-			description: "Also parse every markdown file to catch content errors",
-			required: false,
+			description: "Parse every markdown file to catch content errors (--no-docs skips)",
+			default: true,
 		},
 	},
 	async run({ args }) {
@@ -122,7 +122,7 @@ export const checkCommand = defineCommand({
 			})
 		}
 
-		const failures: { file: string; message: string }[] = []
+		const failures: unknown[] = []
 
 		if (args.docs) {
 			const theme = getTheme(config.theme)
@@ -133,10 +133,7 @@ export const checkCommand = defineCommand({
 						slugDir: slugDirOf(entry),
 					})
 				} catch (err) {
-					failures.push({
-						file: path.relative(userCwd, entry.filePath),
-						message: err instanceof Error ? err.message : String(err),
-					})
+					failures.push(err)
 				}
 			}
 		}
@@ -155,7 +152,7 @@ export const checkCommand = defineCommand({
 
 		log.line()
 		if (failures.length > 0) {
-			for (const failure of failures) log.error(`${failure.file}: ${failure.message}`)
+			for (const failure of failures) log.documentError(failure, userCwd)
 			log.error(`${failures.length} document${failures.length !== 1 ? "s" : ""} failed to parse`)
 			log.line()
 			process.exit(1)

@@ -1,3 +1,6 @@
+import path from "node:path"
+import { DocumentParseError } from "../markdown/parse"
+
 const RESET = "\x1b[0m"
 const BOLD = "\x1b[1m"
 const DIM = "\x1b[2m"
@@ -59,6 +62,37 @@ export function detail(msg: string): void {
 /** Log a dimmed label followed by a highlighted URL */
 export function link(label: string, url: string): void {
 	console.log(`  ${DIM}|${RESET} ${DIM}${label}${RESET} ${CYAN}${url}${RESET}`)
+}
+
+/**
+ * Print a document that failed to parse: `path:line:col reason`, then two
+ * lines of context around the error with a caret at the column. Any other
+ * error prints its message and stack once.
+ */
+export function documentError(err: unknown, cwd: string = process.cwd()): void {
+	if (!(err instanceof DocumentParseError)) {
+		const text = err instanceof Error ? (err.stack ?? err.message) : String(err)
+		error(text)
+		return
+	}
+	const rel = path.relative(cwd, err.filePath) || err.filePath
+	const at = err.line === undefined ? rel : `${rel}:${err.line}:${err.column ?? 1}`
+	const rule = err.ruleId ? ` ${DIM}(${err.source ? `${err.source}:` : ""}${err.ruleId})${RESET}` : ""
+	console.error(`  ${RED}x${RESET} ${BOLD}${at}${RESET} ${err.reason}${rule}`)
+	if (err.line === undefined) return
+
+	const lines = err.fileSource.split(/\r?\n/)
+	const first = Math.max(1, err.line - 2)
+	const last = Math.min(lines.length, err.line + 2)
+	const width = String(last).length
+	for (let n = first; n <= last; n++) {
+		const marker = n === err.line ? `${RED}>${RESET}` : " "
+		console.error(`    ${marker} ${DIM}${String(n).padStart(width)} |${RESET} ${lines[n - 1] ?? ""}`)
+		if (n === err.line) {
+			const pad = " ".repeat(Math.max(0, (err.column ?? 1) - 1))
+			console.error(`      ${" ".repeat(width)} ${DIM}|${RESET} ${pad}${RED}^${RESET}`)
+		}
+	}
 }
 
 /** Print a horizontal line */

@@ -163,26 +163,35 @@ export interface ProcessorOptions {
 	shikiThemes?: { light: string; dark: string }
 }
 
+/**
+ * Source syntax of a document. `md` is CommonMark plus GFM, so indented code
+ * blocks work and raw HTML passes through; `mdx` adds JSX via remark-mdx,
+ * which turns indented code off and requires every tag to close.
+ */
+export type DocumentFormat = "md" | "mdx"
+
 type MarkdownProcessor = ReturnType<typeof unified>
 
 const processorCache = new Map<string, MarkdownProcessor>()
 
-/** Create (or return cached) unified processor for markdown/mdx rendering */
-export function createProcessor(options?: ProcessorOptions): MarkdownProcessor {
+/** Create (or return cached) unified processor for one document format */
+export function createProcessor(format: DocumentFormat, options?: ProcessorOptions): MarkdownProcessor {
 	const themes = options?.shikiThemes ?? { light: "github-light-default", dark: DEFAULT_SHIKI_THEME }
-	const cacheKey = `${themes.light}:${themes.dark}`
+	const cacheKey = `${format}:${themes.light}:${themes.dark}`
 	const cached = processorCache.get(cacheKey)
 	if (cached) return cached
 
-	currentShikiThemes = themes
-	highlighterPromise = undefined
+	if (currentShikiThemes.light !== themes.light || currentShikiThemes.dark !== themes.dark) {
+		currentShikiThemes = themes
+		highlighterPromise = undefined
+	}
 
-	const processor = unified()
+	const base = unified()
 			.use(remarkParse)
 			.use(remarkGfm)
 			.use(remarkMath)
 			.use(remarkFrontmatter)
-			.use(remarkMdx)
+	const processor = (format === "mdx" ? base.use(remarkMdx) : base)
 			.use(remarkRehype, { allowDangerousHtml: true })
 			.use(rehypeKatex)
 			.use(rehypeCallouts)
